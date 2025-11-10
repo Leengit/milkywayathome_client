@@ -155,8 +155,11 @@ typedef struct MW_ALIGN_TYPE
     exp_bfe_t *exp_bfe;  /* C++ object that EXP uses */
 } BFE;
 
+<<<<<<< HEAD
 #define BFE_TYPE "BFE"
 
+=======
+>>>>>>> 68e7f5f0 (Create interface to EXP library's Basis Function Expansion (BSE))
  /* Supported Dwarf Galaxy models */
 #define _PLUMMER_DWARF 0
 #define _NFW_DWARF 1
@@ -206,8 +209,8 @@ typedef struct MW_ALIGN_TYPE
 #define EMPTY_DISK { InvalidDisk, 0.0, 0.0, 0.0, 0.0, 0.0 }
 #define EMPTY_DISK2 { InvalidDisk, 0.0, 0.0, 0.0, 0.0, 0.0 }
 #define EMPTY_HALO { InvalidHalo, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
+#define EMPTY_DWARF { InvalidDwarf, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
 #define EMPTY_BFE { InvalidBFE, NULL }
-#define EMPTY_DWARF { InvalidDwarf, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
 #define EMPTY_POTENTIAL { {EMPTY_SPHERICAL}, EMPTY_DISK, EMPTY_DISK2, EMPTY_HALO, NULL, EMPTY_BFE }
 
 #endif /* _NBODY_POTENTIAL_TYPES_H_ */
