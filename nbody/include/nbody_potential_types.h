@@ -182,6 +182,8 @@ typedef struct MW_ALIGN_TYPE
     real p0; //used by nfw and cored
     real r200; // virial radius
     real ps, r1, rc; //used by cored
+    real rcut, rdecay, pcut, delta, m_nfw_cut, gamma1, psi_nfw_cut, psi_cut_cut;   // NFW cutoff constants
+    real m_nfw_r1, m_iso_r1, psi_nfw_r1, psi_iso_r1; // extra constants for cutoff Cored profiles
 } Dwarf;
 
 #define DWARF_TYPE "Dwarf"
