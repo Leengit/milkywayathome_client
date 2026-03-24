@@ -52,7 +52,7 @@ manual_bodies     = false     -- -- USE THE MANUAL BODY LIST   -- -- -- -- --
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 -- -- -- -- -- -- -- -- -- STANDARD  SETTINGS   -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-totalBodies           = 40000     -- -- NUMBER OF TOTAL BODIES                                               -- --
+totalBodies           = 40000       -- -- NUMBER OF TOTAL BODIES                                               -- --
 totalLightBodies      = 20000       -- -- NUMBER OF LIGHT MATTER BODIES                                        -- --
 
 nbodyLikelihoodMethod = "EMD"       -- -- HIST COMPARE METHOD                                                  -- --
