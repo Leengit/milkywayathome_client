@@ -63,6 +63,7 @@ set(NBODY_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include")
 include_directories(${NBODY_INCLUDE_DIR})
 
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON CACHE BOOL "" FORCE)
 if(OPENMP_FOUND AND NBODY_OPENMP)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
@@ -74,6 +75,231 @@ if(NOT DOUBLEPREC AND NBODY_CRLIBM)
   message(WARNING "Attempting to use single precision with crlibm. Disabling use of crlibm")
   set(NBODY_CRLIBM OFF)
 endif()
+
+include(ExternalProject)
+
+ExternalProject_Add(
+  fftw
+  URL https://www.fftw.org/fftw-3.3.10.tar.gz
+  URL_HASH SHA256=56c932549852cddcfafdab3820b0200c7742675be92179e59e6215b340e26467
+  CONFIGURE_COMMAND
+    "<SOURCE_DIR>/configure"
+    --disable-shared
+    --enable-static
+    --prefix=<INSTALL_DIR>
+    --with-pic
+    CFLAGS=-fPIC
+    CXXFLAGS=-fPIC
+    FCFLAGS=-fPIC
+  BUILD_COMMAND make -j 20
+  INSTALL_COMMAND make install
+  BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libfftw3.a
+)
+ExternalProject_Get_Property(fftw SOURCE_DIR)
+set(MY_FFTW_SOURCE_DIR ${SOURCE_DIR})
+ExternalProject_Get_Property(fftw INSTALL_DIR)
+set(MY_FFTW_INSTALL_DIR ${INSTALL_DIR})
+
+ExternalProject_Add(
+  openmpi
+  DEPENDS fftw
+  URL https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.9.tar.bz2
+  URL_HASH SHA256=dfb72762531170847af3e4a0f21d77d7b23cf36f67ce7ce9033659273677d80b
+  CONFIGURE_COMMAND
+    "<SOURCE_DIR>/configure"
+    --disable-shared
+    --enable-static
+    --prefix=<INSTALL_DIR>
+    --with-pic
+    CFLAGS=-fPIC
+    CXXFLAGS=-fPIC
+    FCFLAGS=-fPIC
+  BUILD_COMMAND make -j 20
+  INSTALL_COMMAND make install
+  BUILD_BYPRODUCTS
+    <INSTALL_DIR>/lib/libmpi_usempif08.a
+    <INSTALL_DIR>/lib/libmpi_usempi_ignore_tkr.a
+    <INSTALL_DIR>/lib/libmpi_mpifh.a
+    <INSTALL_DIR>/lib/libmpi.a
+    <INSTALL_DIR>/lib/libopen-pal.a
+    <INSTALL_DIR>/lib/libprrte.a
+    <INSTALL_DIR>/lib/libpmix.a
+    <INSTALL_DIR>/lib/libhwloc.a
+    <INSTALL_DIR>/lib/libevent_pthreads.a
+    <INSTALL_DIR>/lib/libevent_extra.a
+    <INSTALL_DIR>/lib/libevent_core.a
+    <INSTALL_DIR>/lib/libevent.a
+)
+ExternalProject_Get_Property(openmpi SOURCE_DIR)
+set(MY_OPENMPI_SOURCE_DIR ${SOURCE_DIR})
+ExternalProject_Get_Property(openmpi INSTALL_DIR)
+set(MY_OPENMPI_INSTALL_DIR ${INSTALL_DIR})
+
+ExternalProject_Add(
+  boost
+  DEPENDS openmpi fftw
+  URL https://archives.boost.io/release/1.89.0/source/boost_1_89_0.tar.gz
+  URL_HASH SHA256=9de758db755e8330a01d995b0a24d09798048400ac25c03fc5ea9be364b13c93
+  CONFIGURE_COMMAND
+    "<SOURCE_DIR>/bootstrap.sh"
+    --prefix=<INSTALL_DIR>
+    CFLAGS=-fPIC
+    CXXFLAGS=-fPIC
+    FCFLAGS=-fPIC
+  BUILD_COMMAND
+    "<SOURCE_DIR>/b2"
+    --prefix=<INSTALL_DIR>
+    --with-mpi
+    cflags=-fPIC
+    cxxflags=-fPIC
+    link=static
+    runtime-link=static
+  INSTALL_COMMAND
+    "<SOURCE_DIR>/b2"
+    --prefix=<INSTALL_DIR>
+    --with-mpi
+    cflags=-fPIC
+    cxxflags=-fPIC
+    link=static
+    runtime-link=static
+    install
+  BUILD_IN_SOURCE 1
+)
+ExternalProject_Get_Property(boost SOURCE_DIR)
+set(MY_BOOST_SOURCE_DIR ${SOURCE_DIR})
+ExternalProject_Get_Property(boost INSTALL_DIR)
+set(MY_BOOST_INSTALL_DIR ${INSTALL_DIR})
+
+ExternalProject_Add(
+  gmp
+  DEPENDS boost openmpi fftw
+  URL https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz
+  URL_HASH SHA256=a3c2b80201b89e68616f4ad30bc66aee4927c3ce50e33929ca819d5c43538898
+  CONFIGURE_COMMAND
+    "<SOURCE_DIR>/configure"
+    --disable-shared
+    --enable-static
+    --prefix=<INSTALL_DIR>
+    --with-pic
+    CFLAGS=-fPIC
+    CXXFLAGS=-fPIC
+    FCFLAGS=-fPIC
+  BUILD_COMMAND make -j 20
+  INSTALL_COMMAND make install
+  BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libgmp.a
+)
+ExternalProject_Get_Property(gmp SOURCE_DIR)
+set(MY_GMP_SOURCE_DIR ${SOURCE_DIR})
+ExternalProject_Get_Property(gmp INSTALL_DIR)
+set(MY_GMP_INSTALL_DIR ${INSTALL_DIR})
+
+ExternalProject_Add(
+  mpfr
+  DEPENDS gmp boost openmpi fftw
+  URL https://www.mpfr.org/mpfr-current/mpfr-4.2.2.tar.gz
+  URL_HASH SHA256=826cbb24610bd193f36fde172233fb8c009f3f5c2ad99f644d0dea2e16a20e42
+  CONFIGURE_COMMAND touch "<SOURCE_DIR>/aclocal.m4" "<SOURCE_DIR>/acinclude.m4" "<SOURCE_DIR>/Makefile.in" "<SOURCE_DIR>/Makefile.am" && "<SOURCE_DIR>/configure"
+    --disable-shared
+    --enable-static
+    --prefix=<INSTALL_DIR>
+    --with-gmp=${MY_GMP_INSTALL_DIR}
+    --with-pic
+    CFLAGS=-fPIC
+    CXXFLAGS=-fPIC
+    FCFLAGS=-fPIC
+  BUILD_COMMAND make -j 20
+  INSTALL_COMMAND make install
+  BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libmpfr.a
+)
+ExternalProject_Get_Property(mpfr SOURCE_DIR)
+set(MY_MPFR_SOURCE_DIR ${SOURCE_DIR})
+ExternalProject_Get_Property(mpfr INSTALL_DIR)
+set(MY_MPFR_INSTALL_DIR ${INSTALL_DIR})
+
+ExternalProject_Add(
+  eigen
+  DEPENDS mpfr gmp boost openmpi fftw
+  URL https://gitlab.com/libeigen/eigen/-/archive/3.4.1/eigen-3.4.1.tar.gz
+  URL_HASH SHA256=b93c667d1b69265cdb4d9f30ec21f8facbbe8b307cf34c0b9942834c6d4fdbe2
+  CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>"
+  BUILD_BYPRODUCTS
+    <INSTALL_DIR>/lib/libeigen_lapack_static.a
+    <INSTALL_DIR>/lib/libeigen_blas_static.a
+)
+ExternalProject_Get_Property(eigen SOURCE_DIR)
+set(MY_EIGEN_SOURCE_DIR ${SOURCE_DIR})
+ExternalProject_Get_Property(eigen INSTALL_DIR)
+set(MY_EIGEN_INSTALL_DIR ${INSTALL_DIR})
+
+ExternalProject_Add(
+  hdf5
+  DEPENDS eigen mpfr gmp boost openmpi fftw
+  URL https://github.com/HDFGroup/hdf5/releases/download/hdf5-1_12_3/hdf5-1_12_3.tar.gz
+  URL_HASH SHA256=9fb7aefa8d3f9b8bc73ec7aeb1cfe61607931f0976ee42795a0172fe1762abaa
+  CONFIGURE_COMMAND
+    "<SOURCE_DIR>/configure"
+    --disable-shared
+    --enable-cxx
+    --enable-fortran
+    --enable-hl
+    --enable-static
+    --enable-static-exec
+    --prefix=<INSTALL_DIR>
+    --with-pic
+    CFLAGS=-fPIC
+    CXXFLAGS=-fPIC
+    FCFLAGS=-fPIC
+  BUILD_COMMAND make -j 20
+  INSTALL_COMMAND make install
+  BUILD_BYPRODUCTS
+    <INSTALL_DIR>/lib/libhdf5_hl_fortran.a
+    <INSTALL_DIR>/lib/libhdf5hl_fortran.a
+    <INSTALL_DIR>/lib/libhdf5_hl_cpp.a
+    <INSTALL_DIR>/lib/libhdf5_hl.a
+    <INSTALL_DIR>/lib/libhdf5_fortran.a
+    <INSTALL_DIR>/lib/libhdf5_cpp.a
+    <INSTALL_DIR>/lib/libhdf5.a
+)
+ExternalProject_Get_Property(hdf5 SOURCE_DIR)
+set(MY_HDF5_SOURCE_DIR ${SOURCE_DIR})
+ExternalProject_Get_Property(hdf5 INSTALL_DIR)
+set(MY_HDF5_INSTALL_DIR ${INSTALL_DIR})
+
+ExternalProject_Add(
+  exp
+  DEPENDS hdf5 eigen mpfr gmp boost openmpi fftw
+  GIT_REPOSITORY https://github.com/EXP-code/EXP.git
+  GIT_TAG devel
+  LIST_SEPARATOR |
+  CMAKE_ARGS
+    "-DBUILD_SHARED_LIBS:BOOL=OFF"
+    "-DBUILD_STATIC_LIBS:BOOL=ON"
+    "-DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>"
+    "-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON"
+    "-DCMAKE_PREFIX_PATH:PATH=${MY_HDF5_INSTALL_DIR}|${MY_EIGEN_INSTALL_DIR}|${MY_MPFR_INSTALL_DIR}|${MY_GMP_INSTALL_DIR}|${MY_BOOST_INSTALL_DIR}|${MY_OPENMPI_INSTALL_DIR}|${MY_FFTW_INSTALL_DIR}"
+    "-DENABLE_CUDA:BOOL=OFF"
+    "-DENABLE_PNG:BOOL=OFF"
+    "-DENABLE_PYEXP_ONLY:BOOL=ON"
+    "-DBOOST_ROOT:PATH=${MY_BOOST_INSTALL_DIR}"
+    "-DBoost_NO_SYSTEM_PATHS:BOOL=ON"
+    "-DEigen3_DIR:PATH=${MY_EIGEN_INSTALL_DIR}"
+    "-DEigen3_ROOT:PATH=${MY_EIGEN_INSTALL_DIR}"
+    "-DFFTW_DIR:PATH=${MY_FFTW_INSTALL_DIR}"
+    "-DFFTW_ROOT:PATH=${MY_FFTW_INSTALL_DIR}"
+    "-DGMP_ROOT:PATH=${MY_GMP_INSTALL_DIR}"
+    "-DHDF5_ROOT:PATH=${MY_HDF5_INSTALL_DIR}"
+    "-DMPFR_ROOT:PATH=${MY_MPFR_INSTALL_DIR}"
+    "-DMPI_HOME:PATH=${MY_OPENMPI_INSTALL_DIR}"
+    "-DMPI_ROOT:PATH=${MY_OPENMPI_INSTALL_DIR}"
+  BUILD_BYPRODUCTS
+    <INSTALL_DIR>/lib/libexpui.a
+    <INSTALL_DIR>/lib/libexputil.a
+    <INSTALL_DIR>/lib/libyaml-cpp.a
+)
+ExternalProject_Get_Property(exp SOURCE_DIR)
+set(MY_EXP_SOURCE_DIR ${SOURCE_DIR})
+ExternalProject_Get_Property(exp INSTALL_DIR)
+set(MY_EXP_INSTALL_DIR ${INSTALL_DIR})
 
 print_separator()
 message("   Building:          ${PROJECT_NAME}")
@@ -309,8 +535,84 @@ if(HAVE_LIBRT)
   list(APPEND nbody_link_libs rt)
 endif()
 
+message(STATUS "MY_EXP_SOURCE_DIR = ${MY_EXP_SOURCE_DIR}")
+message(STATUS "MY_HDF5_SOURCE_DIR = ${MY_HDF5_SOURCE_DIR}")
+message(STATUS "MY_EIGEN_SOURCE_DIR = ${MY_EIGEN_SOURCE_DIR}")
+message(STATUS "MY_MPFR_SOURCE_DIR = ${MY_MPFR_SOURCE_DIR}")
+message(STATUS "MY_GMP_SOURCE_DIR = ${MY_GMP_SOURCE_DIR}")
+message(STATUS "MY_BOOST_SOURCE_DIR = ${MY_BOOST_SOURCE_DIR}")
+message(STATUS "MY_OPENMPI_SOURCE_DIR = ${MY_OPENMPI_SOURCE_DIR}")
+message(STATUS "MY_FFTW_SOURCE_DIR = ${MY_FFTW_SOURCE_DIR}")
+message(STATUS "MY_EXP_INSTALL_DIR = ${MY_EXP_INSTALL_DIR}")
+message(STATUS "MY_HDF5_INSTALL_DIR = ${MY_HDF5_INSTALL_DIR}")
+message(STATUS "MY_EIGEN_INSTALL_DIR = ${MY_EIGEN_INSTALL_DIR}")
+message(STATUS "MY_MPFR_INSTALL_DIR = ${MY_MPFR_INSTALL_DIR}")
+message(STATUS "MY_GMP_INSTALL_DIR = ${MY_GMP_INSTALL_DIR}")
+message(STATUS "MY_BOOST_INSTALL_DIR = ${MY_BOOST_INSTALL_DIR}")
+message(STATUS "MY_OPENMPI_INSTALL_DIR = ${MY_OPENMPI_INSTALL_DIR}")
+message(STATUS "MY_FFTW_INSTALL_DIR = ${MY_FFTW_INSTALL_DIR}")
+
+# Find the Python interpreter and development headers
+find_package(Python COMPONENTS Interpreter Development REQUIRED)
 
 add_library(nbody STATIC ${nbody_lib_src} ${nbody_lib_headers})
+add_dependencies(nbody exp hdf5 eigen mpfr gmp boost openmpi fftw)
+# In this order: exp hdf5 eigen mpfr gmp boost openmpi fftw
+target_include_directories(nbody PRIVATE
+    "${MY_EXP_INSTALL_DIR}/include"
+    "${MY_EXP_INSTALL_DIR}/include/EXP"
+    "${MY_EXP_SOURCE_DIR}/include"
+    "${MY_EXP_SOURCE_DIR}/extern/pybind11/include"
+    "${MY_EXP_SOURCE_DIR}/extern/yaml-cpp/include"
+    "${MY_HDF5_INSTALL_DIR}/include"
+    "${MY_EIGEN_INSTALL_DIR}/include"
+    "${MY_EIGEN_INSTALL_DIR}/include/eigen3"
+    "${MY_MPFR_INSTALL_DIR}/include"
+    "${MY_GMP_INSTALL_DIR}/include"
+    "${MY_BOOST_INSTALL_DIR}/include"
+    "${MY_OPENMPI_INSTALL_DIR}/include"
+    "${MY_FFTW_INSTALL_DIR}/include"
+    "${Python_INCLUDE_DIRS}"
+)
+target_link_directories(nbody PRIVATE
+    "${MY_EXP_INSTALL_DIR}/lib"
+    "${MY_HDF5_INSTALL_DIR}/lib"
+    "${MY_EIGEN_INSTALL_DIR}/lib"
+    "${MY_MPFR_INSTALL_DIR}/lib"
+    "${MY_GMP_INSTALL_DIR}/lib"
+    "${MY_BOOST_INSTALL_DIR}/lib"
+    "${MY_OPENMPI_INSTALL_DIR}/lib"
+    "${MY_FFTW_INSTALL_DIR}/lib"
+)
+target_link_libraries(nbody
+    "${MY_EXP_INSTALL_DIR}/lib/libexpui.a"
+    "${MY_EXP_INSTALL_DIR}/lib/libexputil.a"
+    "${MY_EXP_INSTALL_DIR}/lib/libyaml-cpp.a"
+    "${MY_HDF5_INSTALL_DIR}/lib/libhdf5_hl_fortran.a"
+    "${MY_HDF5_INSTALL_DIR}/lib/libhdf5hl_fortran.a"
+    "${MY_HDF5_INSTALL_DIR}/lib/libhdf5_hl_cpp.a"
+    "${MY_HDF5_INSTALL_DIR}/lib/libhdf5_hl.a"
+    "${MY_HDF5_INSTALL_DIR}/lib/libhdf5_fortran.a"
+    "${MY_HDF5_INSTALL_DIR}/lib/libhdf5_cpp.a"
+    "${MY_HDF5_INSTALL_DIR}/lib/libhdf5.a"
+    "${MY_EIGEN_INSTALL_DIR}/lib/libeigen_lapack_static.a"
+    "${MY_EIGEN_INSTALL_DIR}/lib/libeigen_blas_static.a"
+    "${MY_MPFR_INSTALL_DIR}/lib/libmpfr.a"
+    "${MY_GMP_INSTALL_DIR}/lib/libgmp.a"
+    "${MY_OPENMPI_INSTALL_DIR}/lib/libmpi_usempif08.a"
+    "${MY_OPENMPI_INSTALL_DIR}/lib/libmpi_usempi_ignore_tkr.a"
+    "${MY_OPENMPI_INSTALL_DIR}/lib/libmpi_mpifh.a"
+    "${MY_OPENMPI_INSTALL_DIR}/lib/libmpi.a"
+    "${MY_OPENMPI_INSTALL_DIR}/lib/libopen-pal.a"
+    "${MY_OPENMPI_INSTALL_DIR}/lib/libprrte.a"
+    "${MY_OPENMPI_INSTALL_DIR}/lib/libpmix.a"
+    "${MY_OPENMPI_INSTALL_DIR}/lib/libhwloc.a"
+    "${MY_OPENMPI_INSTALL_DIR}/lib/libevent_pthreads.a"
+    "${MY_OPENMPI_INSTALL_DIR}/lib/libevent_extra.a"
+    "${MY_OPENMPI_INSTALL_DIR}/lib/libevent_core.a"
+    "${MY_OPENMPI_INSTALL_DIR}/lib/libevent.a"
+    "${MY_FFTW_INSTALL_DIR}/lib/libfftw3.a"
+)
 if(SYSTEM_IS_X86)
   enable_sse2(nbody)
 endif()

@@ -77,8 +77,8 @@ typedef struct MW_ALIGN_TYPE
     real mass;         /* disk mass */
     real scaleLength;  /* "a" for M-N, "b" for exp disk */
     real scaleHeight;  /* unused for exponential disk. "b" for Miyamoto-Nagai disk */
-    real patternSpeed; //for bars only
-    real startAngle;   //for bars only
+    real patternSpeed; /* for bars only */
+    real startAngle;   /* for bars only */
 } Disk;
 
 #define DISK_TYPE "Disk"
@@ -152,7 +152,7 @@ typedef enum
 typedef struct MW_ALIGN_TYPE
 {
     bfe_t type;
-    exp_bfe_t *exp_bfe;  /* C++ object that EXP uses */
+    exp_bfe_t *exp_bfe; /* C++ object that EXP uses */
 } BFE;
 
 <<<<<<< HEAD
@@ -181,12 +181,12 @@ typedef struct MW_ALIGN_TYPE
     dwarf_t type;
     real mass;
     real scaleLength;
-    real n; //used by einasto
-    real p0; //used by nfw and cored
-    real r200; // virial radius
-    real ps, r1, rc; //used by cored
-    real rcut, rdecay, pcut, delta, m_nfw_cut, gamma1, psi_nfw_cut, psi_cut_cut;   // NFW cutoff constants
-    real m_nfw_r1, m_iso_r1, psi_nfw_r1, psi_iso_r1; // extra constants for cutoff Cored profiles
+    real n;            /* used by einasto */
+    real p0;           /* used by nfw and cored */
+    real r200;         /* virial radius */
+    real ps, r1, rc;   /* used by cored */
+    real rcut, rdecay, pcut, delta, m_nfw_cut, gamma1, psi_nfw_cut, psi_cut_cut;   /* NFW cutoff constants */
+    real m_nfw_r1, m_iso_r1, psi_nfw_r1, psi_iso_r1; /* extra constants for cutoff Cored profiles */
 } Dwarf;
 
 #define DWARF_TYPE "Dwarf"
