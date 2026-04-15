@@ -23,9 +23,9 @@
 
 
 #include "nbody_config.h"
+#include "milkyway_util.h"
 #include "milkyway_math.h"
 #include "milkyway_extra.h"
-#include "nbody_bfe_potential.h"
 
 #define _NO_SPHERICAL 0
 #define _HERN_SPHERICAL 1
@@ -149,6 +149,12 @@ typedef enum
     EXPBFE             = _EXP_BFE,
 } bfe_t;
 
+/*
+ * Note that struct exp_bfe_t is declared here, but it is deliberately not defined here, so that C
+ * code that tries to know about its internals will not compile!
+ */
+struct exp_bfe_t;
+typedef struct exp_bfe_t exp_bfe_t;
 typedef struct MW_ALIGN_TYPE
 {
     bfe_t type;
