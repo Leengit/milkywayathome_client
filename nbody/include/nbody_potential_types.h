@@ -161,11 +161,8 @@ typedef struct MW_ALIGN_TYPE
     exp_bfe_t *exp_bfe; /* C++ object that EXP uses */
 } BFE;
 
-<<<<<<< HEAD
 #define BFE_TYPE "BFE"
 
-=======
->>>>>>> 68e7f5f0 (Create interface to EXP library's Basis Function Expansion (BSE))
  /* Supported Dwarf Galaxy models */
 #define _PLUMMER_DWARF 0
 #define _NFW_DWARF 1
