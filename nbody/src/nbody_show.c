@@ -564,7 +564,7 @@ char* showNBodyCtx(const NBodyCtx* ctx)
 
     if (0 > asprintf(&buf,
                      "ctx = {\n"
-                     "  eps2            = %f\n"
+                     "  eps2            = {%f, %f, %f}\n"
                      "  theta           = %f\n"
                      "  timestep        = %f\n"
                      "  timeEvolve      = %f\n"
@@ -584,7 +584,7 @@ char* showNBodyCtx(const NBodyCtx* ctx)
                      "  potentialType   = %s\n"
                      "  pot = %s\n"
                      "};\n",
-                     ctx->eps2,
+                     ctx->eps2[0], ctx->eps2[1], ctx->eps2[2],
                      ctx->theta,
                      ctx->timestep,
                      ctx->timeEvolve,

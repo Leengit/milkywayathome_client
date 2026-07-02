@@ -22,12 +22,12 @@
 N-body
 ---
 - Simulations are described with Lua input files which can be used
-  to produce an arbitrary initial configuration of particles. 
+  to produce an arbitrary initial configuration of particles.
 
-- Number of particles can be indicated in the Lua input file as 
-  a total number of bodies where half will be baryons and half 
+- Number of particles can be indicated in the Lua input file as
+  a total number of bodies where half will be baryons and half
   will be dark matter particles or as the total number of bodies
-  with the number of baryons as an extra parameter  
+  with the number of baryons as an extra parameter
 
 - Various options are available for applying external potentials
   to a system.
@@ -85,7 +85,7 @@ Step 3.  Run a Nbody Simulation
 
 Running N-Body Options
 ---
-The type of run is set by setting one of the following flags to `true`:  
+The type of run is set by setting one of the following flags to `true`:
 `run`, `run_compare`, `compare_only`, or `get_flag_list`.
 
 ### Command-Line Options
@@ -104,20 +104,22 @@ The type of run is set by setting one of the following flags to `true`:
 
 #### `-p` Options
 
-- **Required 6 arguments:**  
+- **Required 6 arguments:**
   `[1] Forward Time, [2] Time Ratio, [3] Baryon Scale Radius, [4] Radius Ratio, [5] Baryon Mass, [6] Mass Ratio`
-- **If 7 arguments:**  
-  - If `manual_bodies = true`: `[7] Manual Bodies Input File`  
+- **If 7 arguments:**
+  - If `manual_bodies = true`: `[7] Manual Bodies Input File`
   - Else: `[7] LMC_mass`
-- **If 8 arguments:**  
+- **If 8 arguments:**
   `[7] LMC Mass, [8] Manual Bodies Input File`
-- **If 12 arguments:**  
+- **If 12 arguments:**
   `[7] l, [8] b, [9] r, [10] vx, [11] vy, [12] vz`
-- **If 13 arguments:**  
-  - If `manual_bodies = true`: `[13] Manual Bodies Input File`  
+- **If 13 arguments:**
+  - If `manual_bodies = true`: `[13] Manual Bodies Input File`
   - Else: `[13] LMC_mass`
-- **If 14 arguments:**  
+- **If 14 arguments:**
   `[13] LMC Mass, [14] Manual Bodies Input File`
+
+For the ratio arguments `[4]` and `[6]`, ratios are `baryons/(baryons + dark matter)`.
 
 #### Likelihood Comparison Flags
 
@@ -141,10 +143,13 @@ The type of run is set by setting one of the following flags to `true`:
 - **NFW:** `{mass, scaleLength[, rcut]}`  # rcut is an optional cutoff radius; ignored if not set
 - **General Hernquist:** `{mass, scaleLength}`
 - **Cored:** `{mass, scaleLength, r1, rc[, rcut]}` # rcut is an optional cutoff radius; ignored if not set
+- **Single component King** `{mass, scaleLength, W0}` #scaleLength is the model's tidal radius (where density vanishes)
 
-The double component mixed dwarf code can be used as a single component dwarf generator. 
-Set the number of baryons equal to the total number of particles and set the mass ratio to 1.0.
-The parameters used will be that of the baryons. 
+**The double component mixed dwarf code can be used as a single component dwarf generator.**
+To do this set the number of baryons equal to the total number of particles in your `.lua`, set the mass ratio to 1.0 in `run_nbody.sh`, set radius ratio to any number between but not including 0.0 and 1.0.
+The parameters used will be that of the baryons.
+
+King model only works as single component for now since the density and potentials must be solved numerically and the current methods are too computationally expensive to allow double component. A future update will allow double component functionality for this model after it is made more efficient.
 
 ### Single Component Model
 
@@ -152,7 +157,7 @@ The parameters used will be that of the baryons.
 - **NFW:** `{nbody, mass, rho_0, scaleRadius, position, velocity, ignore, prng}`
 - **Hernquist:** `{nbody, mass, radius, a, position, velocity, ignore, prng}`
 
-Only the plummer model is really useful since it can be calculated analytically. 
+Only the plummer model is really useful since it can be calculated analytically.
 
 ---
 
@@ -169,10 +174,10 @@ Only the plummer model is really useful since it can be calculated analytically.
 | `DNBODY_OPENMP`          | ON, OFF | Build the algorithm single-threaded (`OFF`) or multithreaded (`ON`). |
 | `DNBODY_OPENCL`          | ON, OFF | Build with OpenCL libraries to support running N-Body on GPUs. |
 
-## N-Body Units 
+## N-Body Units
 
 - Mass: Structure Mass Units (SMU)
-- Distance: kiloparsec (kpc) 
+- Distance: kiloparsec (kpc)
 - Time: Gigayear (Gyr)
 - Velocity: kpc/Gyr
 - Acceleration: kpc/Gyr<sup>2</sup>
@@ -181,11 +186,15 @@ Units Choosen such that:
 - G = 1 kpc<sup>3</sup> · SMU<sup>-1</sup> · Gyr<sup>-2</sup>
 
 Unit Conversions:
-- 1 SMU = 222288.47 M<sub>☉</sub> 
+- 1 SMU = 222288.47 M<sub>☉</sub>
 - 1 kpc/Gyr = 0.97789439 km/s
 
 Tests
 ---
+  After building the client run
+  ```
+  $ ./build_test_env
+  ```
   Tests can be run by running:
   ```
   $ make test
@@ -200,17 +209,21 @@ Tests
   ```
   $ make test_${n}
   ```
-  Currently n = 100, 1024, 10000 are available.
+  Currently n = 100, 1024, 10000 are available, but only n = 10000 are used.
 
   Single tests can be run with:
   ```
-  $ ctest -R <Test_Name> 
+  $ ctest -R <Test_Name>
   ```
   Get a more versbose output with:
   ```
   $ ctest -R <Test_Name> -VV
   ```
-  If only 25 tests are running instead of 57 tests, you are missing libraries (check Step 0 for compiling N-body)
+  If only 21  tests are running instead of 53 tests, you are missing libraries (check Step 0 for compiling N-body)
+
+  **NOTE**: all `make` and `ctest` commands must be done under the `test_env` directory to work.
+
+  Test results can be seen either in the terminal or under `test_env/Testing/Temporary/LastTest.log`. A consise list of failed test names can be seen under `test_env/Testing/Temporary/LastTestsFailed.log`.
 
 Separation
 ---

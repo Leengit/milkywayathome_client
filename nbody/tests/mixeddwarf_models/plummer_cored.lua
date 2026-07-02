@@ -1,18 +1,18 @@
 -- /* Copyright (c) 2016-2018 Siddhartha Shelton */
 
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
--- Test Environment Lua File 
--- Plummer-Cored Dwarf model 
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+-- Test Environment Lua File
+-- Plummer-Cored Dwarf model
 -- Set to null potential to test stability of dwarf (no Milky Way potential or LMC)
--- Set multiple outputs to true 
--- Set generate initial output to true 
+-- Set multiple outputs to true
+-- Set generate initial output to true
 -- Softening parameter currently hard coded since the calculation needs to be changed
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 -- DEAR LUA USER:
--- This is the developer version of the lua parameter file. 
--- It gives all the options you can have. 
+-- This is the developer version of the lua parameter file.
+-- It gives all the options you can have.
 -- Many of these the client will not need.
 
 -- NOTE --
@@ -23,14 +23,14 @@
 -- typical parameters: 4.0, 1.0, 0.2, 0.2, 12, 0.2 (52.5, 28.6, -156, 79, 107)
 -- 222288.47 solar masses = 1 Structure Mass Unit (SMU)
 
--- available option: using a user inputted list of bodies. Sent in as an 
+-- available option: using a user inputted list of bodies. Sent in as an
 -- optional arguement after dwarf parameter list
 -- MUST still include dwarf parameter list
 -- can control what model to use below
 -- simulation time still taken as the first parameter in the list
 
--- IMPORTANT -- IMPORTANT -- IMPORTANT -- IMPORTANT -- IMPORTANT -- 
--- Structural changes to this file also need to be changed in the 
+-- IMPORTANT -- IMPORTANT -- IMPORTANT -- IMPORTANT -- IMPORTANT --
+-- Structural changes to this file also need to be changed in the
 -- lua files in the tests directory (nbody/tests/mixeddwarf_models/)
 -- especially if the changes are not backwards compatible with the previous format
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
@@ -44,28 +44,28 @@ preset_orbit_parameter_r  = 21.5    -- kpc
 preset_orbit_parameter_vx = -185.5  -- kpc/Gyr
 preset_orbit_parameter_vy = 54.7    -- kpc/Gyr
 preset_orbit_parameter_vz = 147.4   -- kpc/Gyr
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 -- -- -- -- -- -- -- -- -- MODEL SETTINGS -- -- -- -- -- -- -- -- -- -- -- --
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
--- --       ModelComponent Options:    -- -- -- -- -- -- -- -- -- -- -- -- -- 
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+-- --       ModelComponent Options:    -- -- -- -- -- -- -- -- -- -- -- -- --
 -- --       2 - TWO COMPONENT MODEL    -- -- -- -- -- -- -- -- -- -- -- -- --
--- --       1 - SINGLE COMPONENT MODEL  -- -- -- - -- -- -- -- -- -- -- -- -- 
+-- --       1 - SINGLE COMPONENT MODEL  -- -- -- - -- -- -- -- -- -- -- -- --
 -- --       0 - NO DWARF MODEL         -- -- -- -- -- -- -- -- -- -- -- -- --
 ModelComponents   = 2         -- -- TWO COMPONENTS SWITCH   -- -- -- -- -- --
 manual_bodies     = false     -- -- USE THE MANUAL BODY LIST   -- -- -- -- --
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
-        
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
--- -- -- -- -- -- -- -- -- STANDARD  SETTINGS   -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --      
+-- -- -- -- -- -- -- -- -- STANDARD  SETTINGS   -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 totalBodies           = 40000     -- -- NUMBER OF TOTAL BODIES                                               -- --
 totalLightBodies      = 10000       -- -- NUMBER OF LIGHT MATTER BODIES                                        -- --
 
 nbodyLikelihoodMethod = "EMD"       -- -- HIST COMPARE METHOD                                                  -- --
-nbodyMinVersion       = "1.95"      -- -- MINIMUM APP VERSION                                                  -- --
+nbodyMinVersion       = "1.96"      -- -- MINIMUM APP VERSION                                                  -- --
 
 run_null_potential    = true       -- -- NULL POTENTIAL SWITCH                                                -- --
 use_tree_code         = true        -- -- USE TREE CODE NOT EXACT                                              -- --
@@ -113,7 +113,7 @@ if (#arg == 7) then
     if manual_bodies then
         manual_body_file = arg[7]
         LMC_Mass = preset_LMC_Mass
-    else 
+    else
         LMC_Mass = round( tonumber(arg[7]), dec )
     end
     orbit_parameter_l   = preset_orbit_parameter_l
@@ -170,7 +170,7 @@ else
     orbit_parameter_vy  = preset_orbit_parameter_vy
     orbit_parameter_vz  = preset_orbit_parameter_vz
     LMC_Mass = preset_LMC_Mass
-end 
+end
 
 if(ModelComponents == 1) then
    dwarfMass = mass_l
@@ -184,7 +184,7 @@ else
    mass_d    = dwarfMass * (1.0 - light_mass_ratio)
 end
 
---component 1 and 2 for 2 component model. comp 1 should always be updated even for 1 component, as it is used to 
+--component 1 and 2 for 2 component model. comp 1 should always be updated even for 1 component, as it is used to
 --calculate dwarf-based softening length
 comp1 = Dwarf.plummer{mass = mass_l, scaleLength = rscale_l} -- Dwarf Options: plummer, nfw, general_hernquist, cored
 comp2 = Dwarf.cored{mass = mass_d, scaleLength = rscale_d, r1 = 0.7, rc = 0.6} -- Dwarf Options: plummer, nfw, general_hernquist, cored
@@ -192,7 +192,7 @@ comp2 = Dwarf.cored{mass = mass_d, scaleLength = rscale_d, r1 = 0.7, rc = 0.6} -
 
 
 
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 -- -- -- -- -- -- -- -- -- PARAMETER SETTINGS   -- -- -- -- -- -- -- -- -- --
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -214,7 +214,7 @@ bta_upper_range = 15      -- upper range for beta
 SigmaCutoff          = 2.5     -- -- sigma cutoff for outlier rejection DO NOT CHANGE -- --
 SigmaIter            = 6       -- -- number of times to apply outlier rejection DO NOT CHANGE -- --
 Correction           = 1.111   -- -- correction for outlier rejection   DO NOT CHANGE -- --
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 -- -- -- -- -- -- -- -- -- AlGORITHM OPTIONS -- -- -- -- -- -- -- --
 use_best_likelihood  = false    -- use the best likelihood return code (ONLY SET TO TRUE FOR RUN-COMPARE)
@@ -247,7 +247,7 @@ numCalibrationRuns = 0
 -- -- -- -- -- -- -- -- -- ADVANCED DEVELOPER OPTIONS -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 -- -- -- -- -- -- These options only work if you compile nbody with  -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
--- -- -- -- -- -- the -DNBODY_DEV_OPTIONS set to on -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - -- -- -- -- -- -- --  
+-- -- -- -- -- -- the -DNBODY_DEV_OPTIONS set to on -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - -- -- -- -- -- -- --
 
 useMultiOutputs       = true     -- -- WRITE MULTIPLE OUTPUTS                                                            -- --
 freqOfOutputs         = 100         -- -- FREQUENCY OF WRITING OUTPUTS                                                     -- --
@@ -260,11 +260,11 @@ max_soft_par          = 0.8         -- -- kpc, if switch above is turned on, use
 
 generateInitialOutput = true       -- -- save initial dwarf galaxy state to initial.out before evolution                   -- --
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-        
-        
--- -- -- -- -- -- -- -- -- CHECK TIMESTEPS -- -- -- -- -- -- -- -- 
+
+
+-- -- -- -- -- -- -- -- -- CHECK TIMESTEPS -- -- -- -- -- -- -- --
 TooManyTimesteps = 0
-        
+
 function makePotential()
    if(run_null_potential == true) then
        print("running in null potential")
@@ -293,18 +293,18 @@ function get_timestep()
 
         s1 = (rscale_l)^3 / (mass_enc_d + mass_l)
         s2 = (rscale_d)^3 / (mass_enc_l + mass_d)
-        
+
         --return the smaller time step
         if(s1 < s2) then
             s = s1
         else
             s = s2
         end
-        
-        -- I did it this way so there was only one place to change the time step. 
+
+        -- I did it this way so there was only one place to change the time step.
         t = (1.0 / 100.0) * ( pi_4_3 * s)^(1.0/2.0)
-        
-    else 
+
+    else
         t = sqr(1.0 / 10.0) * sqrt((pi_4_3 * cube(rscale_l)) / (mass_l))
     end
 
@@ -323,15 +323,15 @@ function get_soft_par()
     --softening parameter only calculated based on dwarf,
     --so if manual bodies is turned on the calculated s.p. may be too large
     if (UseOldSofteningLength == 1) then
-        sp = calculateEps2(totalBodies, rscale_l, rscale_d, mass_l, mass_d)
+        sp_l, sp_cross, sp_d = calculateEps2(totalBodies, rscale_l, rscale_d, mass_l, mass_d)
     else
-        sp = calculateEps2Dwarf(comp1, totalLightBodies)
+        sp_l, sp_cross, sp_d = calculateEps2Dwarf(comp1, comp2, totalLightBodies, totalBodies)
     end
-    if ((manual_bodies or use_max_soft_par) and (sp > max_soft_par^2)) then --dealing with softening parameter squared
+    if ((manual_bodies or use_max_soft_par) and (sp_cross > max_soft_par^2)) then --dealing with softening parameter squared
         print("Using maximum softening parameter value of " .. tostring(max_soft_par) .. " kpc")
         return max_soft_par^2
     else
-        return sp
+        return {sp_l, sp_cross, sp_d}
     end
 end
 
@@ -341,7 +341,7 @@ function makeContext()
       timeEvolve  = evolveTime,
       timeBack    = revOrbTime,
       timestep    = get_timestep(),
-      eps2        = get_soft_par(), 
+      eps2        = get_soft_par(),
       b           = orbit_parameter_b,
       r           = orbit_parameter_r,
       vx          = orbit_parameter_vx,
@@ -408,7 +408,7 @@ function makeBodies(ctx, potential)
     elseif(run_null_potential == true) then
         print("placing dwarf at origin")
         finalPosition, finalVelocity = Vector.create(0, 0, 0), Vector.create(0, 0, 0)
-    else 
+    else
     	if (LMC_body) then
     		finalPosition, finalVelocity, LMCfinalPosition, LMCfinalVelocity = reverseOrbit_LMC{
 	            potential   = potential,
@@ -427,7 +427,7 @@ function makeBodies(ctx, potential)
 	            dt          = ctx.timestep / 10.0
 	            }
 
-              
+
 	    else
 	        finalPosition, finalVelocity = reverseOrbit{
 	            potential = potential,
@@ -438,7 +438,7 @@ function makeBodies(ctx, potential)
 	            }
          end
     end
-    
+
     if(print_reverse_orbit == true) then
         local placeholderPos, placeholderVel = PrintReverseOrbit{
             potential = potential,
@@ -451,7 +451,7 @@ function makeBodies(ctx, potential)
         print('Printing reverse orbit')
     end
 
-    if(ModelComponents == 2) then         
+    if(ModelComponents == 2) then
 
         firstModel = predefinedModels.mixeddwarf{
             nbody         = totalBodies,
@@ -463,9 +463,9 @@ function makeBodies(ctx, potential)
             comp2         = comp2,
             ignore        = true
         }
-        
+
     elseif(ModelComponents == 1) then
-        firstModel = predefinedModels.plummer{ 
+        firstModel = predefinedModels.plummer{
             nbody       = totalBodies,
             mass        = mass_l,
             scaleRadius = rscale_l,
@@ -474,26 +474,26 @@ function makeBodies(ctx, potential)
             ignore      = false,
             prng        = prng
         }
-  
+
     end
-  
+
     if(manual_bodies) then
         manualModel = predefinedModels.manual_bodies{
         body_file   = manual_body_file,
     }
-         
+
     end
-    
-    if(ModelComponents > 0 and manual_bodies) then 
+
+    if(ModelComponents > 0 and manual_bodies) then
         return firstModel, manualModel
     elseif(ModelComponents == 0 and manual_bodies) then
         return manualModel
     elseif(ModelComponents > 0 and not manual_bodies) then
         return firstModel
-    else    
+    else
         print("Don't you want to simulate something?")
     end
-    
+
 end
 
 function makeHistogram()
@@ -502,12 +502,12 @@ function makeHistogram()
      phi = 128.79,
      theta = 54.39,
      psi = 90.70,
-     
+
      -- ANGULAR RANGE AND NUMBER OF BINS
      lambdaStart = lda_lower_range,
      lambdaEnd   = lda_upper_range,
      lambdaBins  = lda_bins,
-     
+
      betaStart = bta_lower_range,
      betaEnd   = bta_upper_range,
      betaBins  = bta_bins,
@@ -533,13 +533,13 @@ else
 end
 
 
-   
 
-if(manual_bodies and manual_body_file == nil) then 
+
+if(manual_bodies and manual_body_file == nil) then
     print 'WARNING: No body list given. Manual body input turn off'
     manual_bodies = false  --optional body list was not included
 elseif(manual_bodies and ModelComponents == 0) then
-    print 'Using user inputted body list only' 
+    print 'Using user inputted body list only'
     print( manual_body_file)
 elseif(manual_bodies and ModelComponents ~= 0) then
     print 'Using dwarf model and user inputted body list'

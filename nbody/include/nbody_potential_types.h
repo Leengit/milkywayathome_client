@@ -169,6 +169,8 @@ typedef struct MW_ALIGN_TYPE
 #define _GEN_HERN_DWARF 2
 #define _EINASTO_DWARF 3
 #define _CORED_DWARF 4
+#define _KING_DWARF 5
+
 typedef enum
 {
     InvalidDwarf       = InvalidEnum,
@@ -176,7 +178,8 @@ typedef enum
     NFW                = _NFW_DWARF,
     General_Hernquist  = _GEN_HERN_DWARF,
     Einasto            = _EINASTO_DWARF,
-    Cored              = _CORED_DWARF
+    Cored              = _CORED_DWARF,
+    King               = _KING_DWARF
 } dwarf_t;
 
 typedef struct MW_ALIGN_TYPE
@@ -184,12 +187,13 @@ typedef struct MW_ALIGN_TYPE
     dwarf_t type;
     real mass;
     real scaleLength;
-    real n;            /* used by einasto */
-    real p0;           /* used by nfw and cored */
-    real r200;         /* virial radius */
-    real ps, r1, rc;   /* used by cored */
-    real rcut, rdecay, pcut, delta, m_nfw_cut, gamma1, psi_nfw_cut, psi_cut_cut;   /* NFW cutoff constants */
-    real m_nfw_r1, m_iso_r1, psi_nfw_r1, psi_iso_r1; /* extra constants for cutoff Cored profiles */
+    real n; //used by einasto
+    real p0; //used by nfw and cored
+    real r200; // virial radius
+    real ps, r1, rc; //used by cored
+    real W0, r_t, r_0, mu, rho0, rho1, sigma, phi0; // used by king
+    real rcut, rdecay, pcut, delta, m_nfw_cut, gamma1, psi_nfw_cut, psi_cut_cut;   // NFW cutoff constants
+    real m_nfw_r1, m_iso_r1, psi_nfw_r1, psi_iso_r1; // extra constants for cutoff Cored profiles
 } Dwarf;
 
 #define DWARF_TYPE "Dwarf"
@@ -212,7 +216,7 @@ typedef struct MW_ALIGN_TYPE
 #define EMPTY_DISK { InvalidDisk, 0.0, 0.0, 0.0, 0.0, 0.0 }
 #define EMPTY_DISK2 { InvalidDisk, 0.0, 0.0, 0.0, 0.0, 0.0 }
 #define EMPTY_HALO { InvalidHalo, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
-#define EMPTY_DWARF { InvalidDwarf, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
+#define EMPTY_DWARF { InvalidDwarf, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }
 #define EMPTY_BFE { InvalidBFE, NULL }
 #define EMPTY_POTENTIAL { {EMPTY_SPHERICAL}, EMPTY_DISK, EMPTY_DISK2, EMPTY_HALO, NULL, EMPTY_BFE }
 
