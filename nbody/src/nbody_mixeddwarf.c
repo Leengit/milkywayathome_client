@@ -39,7 +39,7 @@ their copyright to their programs which execute similar algorithms.
 
 /*Note: minusfivehalves(x) raises to x^-5/2 power and minushalf(x) is x^-1/2*/
 
-
+ 
 /*      MODEL SPECIFIC FUNCTIONS       */
 static inline real potential( real r, const Dwarf* comp1, const Dwarf* comp2)
 {
@@ -106,7 +106,7 @@ static real gauss_quad(real (*func)(real, const Dwarf*, const Dwarf*, real, mwbo
     }
     else
     {
-        a = lower;
+        a = lower; 
         b = upper;
     }
 
@@ -134,7 +134,7 @@ static real gauss_quad(real (*func)(real, const Dwarf*, const Dwarf*, real, mwbo
     {
                 //gauss quad
         intv = intv + c1 * (*func)(x1n, comp1, comp2, energy, isDark) * coef1 +
-                      c2 * (*func)(x2n, comp1, comp2, energy, isDark) * coef1 +
+                      c2 * (*func)(x2n, comp1, comp2, energy, isDark) * coef1 + 
                       c3 * (*func)(x3n, comp1, comp2, energy, isDark) * coef1;
 
         lowerg = upperg;
@@ -204,7 +204,7 @@ static inline real max_finder(real (*profile)(real , real , const Dwarf*, const 
     if (mw_fabs(b - c) > mw_fabs(b - a))
     {
         x1 = b;
-        x2 = b + (RATIO_COMPLEMENT * (c - b));
+        x2 = b + (RATIO_COMPLEMENT * (c - b)); 
     }
     else
     {
@@ -538,7 +538,7 @@ static real dist_fun(real v, real r, const Dwarf* comp1, const Dwarf* comp2, mwb
             rho1 = comp2->rho1;
             sig = comp2->sigma;
         }
-
+        
         real king_df = rho1*minusthreehalves(2 * M_PI * sig * sig)*(mw_exp(king_energy/(sig * sig)) - 1.0);
 
         distribution_function = v * v * king_df;
@@ -600,7 +600,7 @@ static inline real vel_mag(real r, const Dwarf* comp1, const Dwarf* comp2, mwboo
     /* having the upper limit as exactly v_esc is bad since the dist fun seems to blow up there for small r. */
     real v_esc = 0.0;
     real potential_offset = 0.0; // phi_0 in the definition for relative energy
-
+    
     // This logic is okay since King model is 1 component for now (only 1 comp mass is nonzero)
     if (comp1->type == King && comp1->mass > 0.0) {
         potential_offset = -(comp1->mass)/(comp1->r_t);
@@ -724,7 +724,7 @@ void set_model_params(Dwarf* comp)
             /* this is the pcrit * delta_crit from the nfw 1997 paper or just p0 from binney */
             //as defined in Binney and Tremaine 2nd ed:
             //the r200 is now used for all potentials to provide the bounds for density sampling
-            real mass = comp->mass;
+            real mass = comp->mass; 
             real rscale = comp->scaleLength;
             real r200 = mw_cbrt(mass / (vol_pcrit));//vol_pcrit = 200.0 * pcrit * PI_4_3
             real c = r200 / rscale; //halo concentration
@@ -738,7 +738,7 @@ void set_model_params(Dwarf* comp)
             real m_nfw_cut = 0.0;
             real gamma1 = 0.0;
             real psi_nfw_cut = 0.0;
-            real psi_cut_cut = 0.0;
+            real psi_cut_cut = 0.0; 
             real m_nfw_r1 = 0.0;
             real m_iso_r1 = 0.0;
             real psi_nfw_r1 = 0.0;
@@ -754,36 +754,12 @@ void set_model_params(Dwarf* comp)
                 psi_cut_cut = 4.0 * M_PI * pcut * mw_pow(rcut, -delta) * mw_exp(rcut / rdecay) * mw_pow(rdecay, delta + 3) * (UpperIncompleteGammaFunc(delta + 2, rcut / rdecay) * inv(rdecay));
             }
             if(comp->type == Cored)
-            {
-                ps = p0; //characteristic density of the NFW portion of the cored profile
+            {       
+                ps = p0; //characteristic density of the NFW portion of the cored profile 
                 real r1 = comp->r1;
                 real rc = comp->rc;
 
-    if (rcut != 0.0) {
-        rdecay = 0.3 * rcut;
-        pcut = p0 * inv(rcut / rscale) * inv(sqr(1.0 + rcut / rscale));
-        delta = (rcut / rdecay) - (1.0 + 3.0 * (rcut / rscale)) / (1.0 + (rcut / rscale));
-        m_nfw_cut = 4.0 * M_PI * p0 * cube(rscale) * (mw_log((rscale + rcut) / rscale) - rcut / (rscale + rcut));
-        gamma1 = UpperIncompleteGammaFunc(delta + 3, rcut / rdecay);
-        psi_nfw_cut = 4.0 * M_PI * p0 * cube(rscale) * mw_log(1.0 + rcut / rscale) * inv(rcut);
-        psi_cut_cut = 4.0 * M_PI * pcut * mw_pow(rcut, -delta) * mw_exp(rcut / rdecay) * mw_pow(rdecay, delta + 3) * (UpperIncompleteGammaFunc(delta + 2, rcut / rdecay) * inv(rdecay));
-    }
-    if(comp->type == Cored)
-    {
-        ps = p0; //characteristic density of the NFW portion of the cored profile
-        real r1 = comp->r1;
-        real rc = comp->rc;
-
-        real p0_ps = (rscale + rscale * sqr(r1 / rc)) / (r1 * sqr(1.0 + r1 / rscale)); //Ratio of p0 to ps
-
-        p0 = ps * p0_ps; //central density of the cored profile
-
-        m_nfw_r1 = 4.0 * M_PI * ps * cube(rscale) * (mw_log((rscale + r1) / rscale) - r1 / (rscale + r1));
-        m_iso_r1 = 4.0 * M_PI * p0 * sqr(rc) * (r1 - rc * mw_atan(r1 / rc));
-        psi_nfw_r1 = 4.0 * M_PI * ps * cube(rscale) * mw_log(1.0 + r1 / rscale) * inv(r1);
-        psi_iso_r1 = -4.0 * M_PI * p0 * sqr(rc) * (mw_log(sqr(rc) + sqr(r1)) / 2.0 + rc * mw_atan(r1 / rc) / r1);
-
-    }
+                real p0_ps = (rscale + rscale * sqr(r1 / rc)) / (r1 * sqr(1.0 + r1 / rscale)); //Ratio of p0 to ps
 
                 p0 = ps * p0_ps; //central density of the cored profile
 
@@ -824,7 +800,7 @@ void set_model_params(Dwarf* comp)
 
             real r0 = r_t/Rt;
             real rho0 = M/(r0*r0*r0*mu);
-
+            
             // save these values into the Dwarf struct
             comp->phi0 = -M/r_t;
             comp->rho0 = rho0;
@@ -848,7 +824,7 @@ void set_model_params(Dwarf* comp)
     }
 }
 
-static real king_rho_max(real r, real unused1, const Dwarf* comp, const Dwarf* unused_comp, mwbool unused2)
+static real king_rho_max(real r, real unused1, const Dwarf* comp, const Dwarf* unused_comp, mwbool unused2) 
 {
     // finds the maximum of r^2*rho(r) for king profile to set the upper bound in radius sampling
     // unused1, unused_comp, unused2 are all unused, just there to match the required function input format for max_finder()
@@ -876,30 +852,30 @@ static inline void recalculate_comp_mass(Dwarf* comp, real bound)
             const real rcut = comp->rcut;
 
             if (rcut != 0.0 && r > rcut)
-            {
-                const real pcut = comp->pcut;
-                const real delta = comp->delta;
-                const real rdecay = comp->rdecay;
-                const real gamma1 = comp->gamma1;
+            {                                                                                                                    
+                const real pcut = comp->pcut;                                                                                   
+                const real delta = comp->delta;                                                                                 
+                const real rdecay = comp->rdecay;   
+                const real gamma1 = comp->gamma1;     
                 const real m_nfw_r1 = comp->m_nfw_r1;
                 const real m_iso_r1 = comp->m_iso_r1;
-                const real m_nfw_cut = comp->m_nfw_cut;
-                m = 4.0 * M_PI * pcut * mw_pow(rcut, -delta) * mw_exp(rcut / rdecay) * mw_pow(rdecay, delta + 3) * (gamma1 - UpperIncompleteGammaFunc(delta + 3, r / rdecay)) + m_nfw_cut + m_iso_r1 - m_nfw_r1;
-            }
-            else if (r <= r1)
-            {
-                const real p0 = comp->p0;
-                const real rc = comp->rc;
-                m = 4.0 * M_PI * p0 * sqr(rc) * (r - rc * mw_atan(r / rc));
-            }
-            else
-            {
-                const real ps = comp->ps;
-                const real rs = comp->scaleLength;
+                const real m_nfw_cut = comp->m_nfw_cut;                                                                          
+                m = 4.0 * M_PI * pcut * mw_pow(rcut, -delta) * mw_exp(rcut / rdecay) * mw_pow(rdecay, delta + 3) * (gamma1 - UpperIncompleteGammaFunc(delta + 3, r / rdecay)) + m_nfw_cut + m_iso_r1 - m_nfw_r1;                                           
+            }                                                                                                                    
+            else if (r <= r1)                                                                                                    
+            {                                                                                                                    
+                const real p0 = comp->p0;                                                                                       
+                const real rc = comp->rc;                                                                                       
+                m = 4.0 * M_PI * p0 * sqr(rc) * (r - rc * mw_atan(r / rc));                                                                                 
+            }                                                                                                                    
+            else                                                                                                                 
+            {                                                                                                                    
+                const real ps = comp->ps;                                                                                       
+                const real rs = comp->scaleLength; 
                 const real m_nfw_r1 = comp->m_nfw_r1;
-                const real m_iso_r1 = comp->m_iso_r1;
-                m = 4.0 * M_PI * ps * cube(rs) * (mw_log(1.0 + r / rs) - r / (rs + r)) + m_iso_r1 - m_nfw_r1;
-            }
+                const real m_iso_r1 = comp->m_iso_r1;                                                                            
+                m = 4.0 * M_PI * ps * cube(rs) * (mw_log(1.0 + r / rs) - r / (rs + r)) + m_iso_r1 - m_nfw_r1;                                                               
+            }                                                                                                                                                     
         }
         else if(comp->type == NFW)
         {
@@ -953,7 +929,7 @@ int nbGenerateMixedDwarfCore(lua_State* luaSt, dsfmt_t* prng, unsigned int nbody
         real * vz = mwCalloc(nbody, sizeof(real));
         real * masses = mwCalloc(nbody, sizeof(real));
 
-
+ 
         mwvector vec = ZERO_VECTOR;
 
 
@@ -1077,7 +1053,7 @@ int nbGenerateMixedDwarfCore(lua_State* luaSt, dsfmt_t* prng, unsigned int nbody
         }
     //----------------------------------------------------------------------------------------------------
 
-
+        
         /* dark matter type is TRUE or 1. Light matter type is False, or 0*/
         mwbool isdark = TRUE;
         mwbool islight = FALSE;
