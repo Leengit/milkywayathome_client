@@ -18,7 +18,7 @@
 # along with Milkyway@Home.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.21...3.999)
 project(milkyway_nbody)
 
 set(nbody_VERSION_MAJOR 1
@@ -79,7 +79,27 @@ endif()
 include(ExternalProject)
 
 ExternalProject_Add(
+  zlib
+  URL https://www.zlib.net/zlib-1.3.2.tar.gz
+  URL_HASH SHA256=bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16
+  CMAKE_ARGS
+    "-DBUILD_SHARED_LIBS:BOOL=OFF"
+    "-DBUILD_STATIC_LIBS:BOOL=ON"
+    "-DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>"
+    "-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON"
+  BUILD_BYPRODUCTS
+    <INSTALL_DIR>/lib/libz.a
+    <INSTALL_DIR>/include/zlib.h
+    <INSTALL_DIR>/include/zconf.h
+)
+ExternalProject_Get_Property(zlib SOURCE_DIR)
+set(MY_ZLIB_SOURCE_DIR ${SOURCE_DIR})
+ExternalProject_Get_Property(zlib INSTALL_DIR)
+set(MY_ZLIB_INSTALL_DIR ${INSTALL_DIR})
+
+ExternalProject_Add(
   fftw
+  DEPENDS zlib
   URL https://www.fftw.org/fftw-3.3.10.tar.gz
   URL_HASH SHA256=56c932549852cddcfafdab3820b0200c7742675be92179e59e6215b340e26467
   CONFIGURE_COMMAND
@@ -102,7 +122,7 @@ set(MY_FFTW_INSTALL_DIR ${INSTALL_DIR})
 
 ExternalProject_Add(
   openmpi
-  DEPENDS fftw
+  DEPENDS fftw zlib
   URL https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.9.tar.bz2
   URL_HASH SHA256=dfb72762531170847af3e4a0f21d77d7b23cf36f67ce7ce9033659273677d80b
   CONFIGURE_COMMAND
@@ -137,7 +157,7 @@ set(MY_OPENMPI_INSTALL_DIR ${INSTALL_DIR})
 
 ExternalProject_Add(
   boost
-  DEPENDS openmpi fftw
+  DEPENDS openmpi fftw zlib
   URL https://archives.boost.io/release/1.89.0/source/boost_1_89_0.tar.gz
   URL_HASH SHA256=9de758db755e8330a01d995b0a24d09798048400ac25c03fc5ea9be364b13c93
   CONFIGURE_COMMAND
@@ -172,7 +192,7 @@ set(MY_BOOST_INSTALL_DIR ${INSTALL_DIR})
 
 ExternalProject_Add(
   gmp
-  DEPENDS boost openmpi fftw
+  DEPENDS boost openmpi fftw zlib
   URL https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz
   URL_HASH SHA256=a3c2b80201b89e68616f4ad30bc66aee4927c3ce50e33929ca819d5c43538898
   CONFIGURE_COMMAND
@@ -195,7 +215,7 @@ set(MY_GMP_INSTALL_DIR ${INSTALL_DIR})
 
 ExternalProject_Add(
   mpfr
-  DEPENDS gmp boost openmpi fftw
+  DEPENDS gmp boost openmpi fftw zlib
   URL https://www.mpfr.org/mpfr-current/mpfr-4.2.2.tar.gz
   URL_HASH SHA256=826cbb24610bd193f36fde172233fb8c009f3f5c2ad99f644d0dea2e16a20e42
   CONFIGURE_COMMAND touch "<SOURCE_DIR>/aclocal.m4" "<SOURCE_DIR>/acinclude.m4" "<SOURCE_DIR>/Makefile.in" "<SOURCE_DIR>/Makefile.am" && "<SOURCE_DIR>/configure"
@@ -218,7 +238,7 @@ set(MY_MPFR_INSTALL_DIR ${INSTALL_DIR})
 
 ExternalProject_Add(
   eigen
-  DEPENDS mpfr gmp boost openmpi fftw
+  DEPENDS mpfr gmp boost openmpi fftw zlib
   URL https://gitlab.com/libeigen/eigen/-/archive/3.4.1/eigen-3.4.1.tar.gz
   URL_HASH SHA256=b93c667d1b69265cdb4d9f30ec21f8facbbe8b307cf34c0b9942834c6d4fdbe2
   CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>"
@@ -233,7 +253,7 @@ set(MY_EIGEN_INSTALL_DIR ${INSTALL_DIR})
 
 ExternalProject_Add(
   hdf5
-  DEPENDS eigen mpfr gmp boost openmpi fftw
+  DEPENDS eigen mpfr gmp boost openmpi fftw zlib
   URL https://github.com/HDFGroup/hdf5/releases/download/hdf5-1_12_3/hdf5-1_12_3.tar.gz
   URL_HASH SHA256=9fb7aefa8d3f9b8bc73ec7aeb1cfe61607931f0976ee42795a0172fe1762abaa
   CONFIGURE_COMMAND
@@ -267,16 +287,17 @@ set(MY_HDF5_INSTALL_DIR ${INSTALL_DIR})
 
 ExternalProject_Add(
   exp
-  DEPENDS hdf5 eigen mpfr gmp boost openmpi fftw
+  DEPENDS hdf5 eigen mpfr gmp boost openmpi fftw zlib
   GIT_REPOSITORY https://github.com/EXP-code/EXP.git
   GIT_TAG devel
+  UPDATE_DISCONNECTED ON # Don't check github for updates every time we `make`
   LIST_SEPARATOR |
   CMAKE_ARGS
     "-DBUILD_SHARED_LIBS:BOOL=OFF"
     "-DBUILD_STATIC_LIBS:BOOL=ON"
     "-DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>"
     "-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON"
-    "-DCMAKE_PREFIX_PATH:PATH=${MY_HDF5_INSTALL_DIR}|${MY_EIGEN_INSTALL_DIR}|${MY_MPFR_INSTALL_DIR}|${MY_GMP_INSTALL_DIR}|${MY_BOOST_INSTALL_DIR}|${MY_OPENMPI_INSTALL_DIR}|${MY_FFTW_INSTALL_DIR}"
+    "-DCMAKE_PREFIX_PATH:PATH=${MY_HDF5_INSTALL_DIR}|${MY_EIGEN_INSTALL_DIR}|${MY_MPFR_INSTALL_DIR}|${MY_GMP_INSTALL_DIR}|${MY_BOOST_INSTALL_DIR}|${MY_OPENMPI_INSTALL_DIR}|${MY_FFTW_INSTALL_DIR}|${MY_ZLIB_INSTALL_DIR}"
     "-DDISABLE_PYTHON:BOOL=ON"
     "-DENABLE_CUDA:BOOL=OFF"
     "-DENABLE_MINIMAL:BOOL=ON"
@@ -292,6 +313,8 @@ ExternalProject_Add(
     "-DMPFR_ROOT:PATH=${MY_MPFR_INSTALL_DIR}"
     "-DMPI_HOME:PATH=${MY_OPENMPI_INSTALL_DIR}"
     "-DMPI_ROOT:PATH=${MY_OPENMPI_INSTALL_DIR}"
+    "-DZLIB_DIR:PATH=${MY_ZLIB_INSTALL_DIR}"
+    "-DZLIB_ROOT:PATH=${MY_ZLIB_INSTALL_DIR}"
   BUILD_BYPRODUCTS
     <INSTALL_DIR>/lib/libexpui.a
     <INSTALL_DIR>/lib/libexputil.a
@@ -546,6 +569,7 @@ message(STATUS "MY_GMP_SOURCE_DIR = ${MY_GMP_SOURCE_DIR}")
 message(STATUS "MY_BOOST_SOURCE_DIR = ${MY_BOOST_SOURCE_DIR}")
 message(STATUS "MY_OPENMPI_SOURCE_DIR = ${MY_OPENMPI_SOURCE_DIR}")
 message(STATUS "MY_FFTW_SOURCE_DIR = ${MY_FFTW_SOURCE_DIR}")
+message(STATUS "MY_ZLIB_SOURCE_DIR = ${MY_ZLIB_SOURCE_DIR}")
 message(STATUS "MY_EXP_INSTALL_DIR = ${MY_EXP_INSTALL_DIR}")
 message(STATUS "MY_HDF5_INSTALL_DIR = ${MY_HDF5_INSTALL_DIR}")
 message(STATUS "MY_EIGEN_INSTALL_DIR = ${MY_EIGEN_INSTALL_DIR}")
@@ -554,13 +578,14 @@ message(STATUS "MY_GMP_INSTALL_DIR = ${MY_GMP_INSTALL_DIR}")
 message(STATUS "MY_BOOST_INSTALL_DIR = ${MY_BOOST_INSTALL_DIR}")
 message(STATUS "MY_OPENMPI_INSTALL_DIR = ${MY_OPENMPI_INSTALL_DIR}")
 message(STATUS "MY_FFTW_INSTALL_DIR = ${MY_FFTW_INSTALL_DIR}")
+message(STATUS "MY_ZLIB_INSTALL_DIR = ${MY_ZLIB_INSTALL_DIR}")
 
 # Find the Python interpreter and development headers
 find_package(Python COMPONENTS Interpreter Development REQUIRED)
 
 add_library(nbody STATIC ${nbody_lib_src} ${nbody_lib_headers})
-add_dependencies(nbody exp hdf5 eigen mpfr gmp boost openmpi fftw)
-# In this order: exp hdf5 eigen mpfr gmp boost openmpi fftw
+add_dependencies(nbody exp hdf5 eigen mpfr gmp boost openmpi fftw zlib)
+# In this order: exp hdf5 eigen mpfr gmp boost openmpi fftw zlib
 target_include_directories(nbody PRIVATE
     "${MY_EXP_INSTALL_DIR}/include"
     "${MY_EXP_INSTALL_DIR}/include/EXP"
@@ -574,6 +599,7 @@ target_include_directories(nbody PRIVATE
     "${MY_BOOST_INSTALL_DIR}/include"
     "${MY_OPENMPI_INSTALL_DIR}/include"
     "${MY_FFTW_INSTALL_DIR}/include"
+    "${MY_ZLIB_INSTALL_DIR}/include"
     "${Python_INCLUDE_DIRS}"
 )
 target_link_directories(nbody PRIVATE
@@ -585,8 +611,10 @@ target_link_directories(nbody PRIVATE
     "${MY_BOOST_INSTALL_DIR}/lib"
     "${MY_OPENMPI_INSTALL_DIR}/lib"
     "${MY_FFTW_INSTALL_DIR}/lib"
+    "${MY_ZLIB_INSTALL_DIR}/lib"
 )
 target_link_libraries(nbody
+    "-Wl,-Bstatic"
     "${MY_EXP_INSTALL_DIR}/lib/libexpui.a"
     "${MY_EXP_INSTALL_DIR}/lib/libexputil.a"
     "${MY_EXP_INSTALL_DIR}/lib/libyaml-cpp.a"
@@ -614,6 +642,9 @@ target_link_libraries(nbody
     "${MY_OPENMPI_INSTALL_DIR}/lib/libevent_core.a"
     "${MY_OPENMPI_INSTALL_DIR}/lib/libevent.a"
     "${MY_FFTW_INSTALL_DIR}/lib/libfftw3.a"
+    "${MY_ZLIB_INSTALL_DIR}/lib/libz.a"
+    gfortran
+    quadmath
 )
 if(SYSTEM_IS_X86)
   enable_sse2(nbody)
