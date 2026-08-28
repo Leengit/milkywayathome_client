@@ -73,10 +73,10 @@ exp_bfe_t *exp_bfe_open(const char *yaml_filename);
 mwvector exp_bfe_get_acceleration(exp_bfe_t *exp_bfe, mwvector xyz, bfe_real t);
 
 /*
-  exp_bfe_get_dark_density: Given a position in space `xyz` (note that xyz.w is ignored) and a time,
-  use the BFE functionality and coefficients provided by EXP to compute the dark-matter density.
+  exp_bfe_get_density: Given a position in space `xyz` (note that xyz.w is ignored) and a time,
+  use the BFE functionality and coefficients provided by EXP to compute the density.
 */
-bfe_real exp_bfe_get_dark_density(exp_bfe_t *exp_bfe, mwvector xyz, bfe_real t);
+bfe_real exp_bfe_get_density(exp_bfe_t *exp_bfe, mwvector xyz, bfe_real t);
 
 /*
   exp_bfe_close: The BFE information is no longer needed, clean up and release it.

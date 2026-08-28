@@ -1,13 +1,72 @@
 #include "nbody_bfe_potential.h"
+#include <fstream>
+#include <iostream>
 #include <memory>
+#include <yaml-cpp/yaml.h>
 #include <Eigen/Eigen>
 #include "BiorthBasis.H"
+
+/*
+  Useful object for freeing H5 file handles
+ */
+class MW_H5FileHandle {
+private:
+    hid_t id_;
+
+public:
+    // Initialize to -1 by default
+    MW_H5FileHandle() : id_(-1) {}
+
+    // Construct from an existing HDF5 file ID
+    explicit MW_H5FileHandle(hid_t id) : id_(id) {}
+
+    // Destructor closes the file if the ID is valid
+    ~MW_H5FileHandle() {
+        if (id_ >= 0) {
+            H5Fclose(id_);
+        }
+    }
+
+    // Delete copy semantics to prevent double-free/double-close errors
+    MW_H5FileHandle(const MW_H5FileHandle&) = delete;
+    MW_H5FileHandle& operator=(const MW_H5FileHandle&) = delete;
+
+    // Enable move semantics for safe ownership transfer
+    MW_H5FileHandle(MW_H5FileHandle&& other) noexcept : id_(other.id_) {
+        other.id_ = -1;
+    }
+
+    MW_H5FileHandle& operator=(MW_H5FileHandle&& other) noexcept {
+        if (this != &other) {
+            if (id_ >= 0) {
+                H5Fclose(id_);
+            }
+            id_ = other.id_;
+            other.id_ = -1;
+        }
+        return *this;
+    }
+
+    // Implicit conversion operator to behave seamlessly like a hid_t
+    operator hid_t() const { return id_; }
+
+    // Explicit getter for convenience
+    hid_t get() const { return id_; }
+
+    // Manually release or replace the handle
+    void reset(hid_t new_id = -1) {
+        if (id_ >= 0) {
+            H5Fclose(id_);
+        }
+        id_ = new_id;
+    }
+};
 
 /*
   These are the structures we will use in our C++ code, to enable us to call EXP.
 */
 struct exp_bfe_timestep_t {
-    /* Each BiorthBasis is for a particular time */
+    /* Each BasisClasses::BiorthBasis is for a particular time */
     bfe_real time = std::numeric_limits<bfe_real>::quiet_NaN();
     /* The acceleration for this contribution should be scaled by this weight */
     bfe_real weight = std::numeric_limits<bfe_real>::quiet_NaN();
@@ -28,8 +87,34 @@ struct exp_bfe_t {
 */
 exp_bfe_t *exp_bfe_open(const char *yaml_filename)
 {
-    // Write me!!!
-    // Should we silently do nothing if yaml_filename is NULL or ""?!!!
+    try {
+	YAML::Node yaml_node = YAML::LoadFile(yaml_filename);
+	const std::string basis_type = yaml_node["basis"]["type"].as<std::string>();
+	std::shared_ptr<BasisClasses::BiorthBasis> basis = BasisClasses::BiorthBasis::factory(yaml_node["basis"]);
+	const std::string coefs_path = yaml_node["output"]["coefficients"].as<std::string>();
+	MW_H5FileHandle file_id(H5Fopen(coefs_path.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT));
+	if (file_id < 0) {
+	    throw YAML::Exception(YAML::Mark::null_mark(), "Error opening coefficients file " + coefs_path);
+	}
+	MW_H5FileHandle dataset_id(H5Dopen2(file_id, "/coefficients", H5P_DEFAULT));
+	if (dataset_id < 0) {
+	    throw YAML::Exception(YAML::Mark::null_mark(), "Error opening coefficients dataset file " + coefs_path + "/coefficients");
+	}
+
+	// Needed???!!! const int max_l = yaml_node["bfe"]["max_l"].as<int>();
+
+	// 3. Extract the coefficient vector corresponding to each target time snapshot
+	std::vector<double> aTimes; // (time index)
+	std::vector<std::vector<double>> aCoefficients; // (time index, coef index)
+
+    } catch (const YAML::Exception& e) {
+	std::cerr << "Error parsing YAML file "
+		  << (yaml_filename ? '\'' + std::string(yaml_filename) + '\'' : "(NULL)")
+		  << ": " << e.what() << std::endl;
+	throw;
+    }
+
+    // Return something sensible!!!
     return nullptr;
 }
 
@@ -73,10 +158,10 @@ mwvector exp_bfe_get_acceleration(exp_bfe_t *exp_bfe, mwvector xyz, bfe_real t)
 }
 
 /*
-  exp_bfe_get_dark_density: Given a position in space `xyz` (note that xyz.w is ignored) and a time,
-  use the BFE functionality and coefficients provided by EXP to compute the dark-matter density.
+  exp_bfe_get_density: Given a position in space `xyz` (note that xyz.w is ignored) and a time,
+  use the BFE functionality and coefficients provided by EXP to compute the density.
 */
-bfe_real exp_bfe_get_dark_density(exp_bfe_t *exp_bfe, mwvector xyz, bfe_real t)
+bfe_real exp_bfe_get_density(exp_bfe_t *exp_bfe, mwvector xyz, bfe_real t)
 {
     // Write me!!!
     return 0.0;
