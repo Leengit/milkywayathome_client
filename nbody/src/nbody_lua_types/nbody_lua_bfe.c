@@ -36,7 +36,7 @@ BFE* checkBFE(lua_State* luaSt, int idx)
 int pushBFE(lua_State* luaSt, const BFE* p)
 {
     return pushType(luaSt, BFE_TYPE, sizeof(BFE), (void*) p);
-    
+
 };
 
 static const MWEnumAssociation bfeOptions[] =
@@ -49,10 +49,10 @@ static const MWEnumAssociation bfeOptions[] =
 static int createBFE(lua_State* luaSt, const MWNamedArg* argTable, BFE* b, char** filename)
 {
     oneTableArgument(luaSt, argTable);
-    b->exp_bfe = exp_bfe_open(filename);
+    b->exp_bfe = exp_bfe_open(*filename);
     if (checkBFEConstants(b))
         luaL_error(luaSt, "Invalid BFE encountered.");
-    
+
     pushBFE(luaSt, b);
     return 1;
 };
@@ -62,14 +62,14 @@ static int createEXP_BFE(lua_State* luaSt)
     static BFE b = EMPTY_BFE;
     static char *filename;
     static const MWNamedArg argTable[] =
-      {
-        {"filename", LUA_TUSERDATA, NULL, TRUE, &filename, 1 },
-        END_MW_NAMED_ARG
-      };
+	{
+	    {"filename", LUA_TUSERDATA, NULL, TRUE, &filename, 1 },
+	    END_MW_NAMED_ARG
+	};
     b.type = EXPBFE;
     return createBFE(luaSt, argTable, &b, &filename);
 };
-    
+
 static int createNo_BFE(lua_State* luaSt)
 {
     static BFE b = EMPTY_BFE;
@@ -78,7 +78,7 @@ static int createNo_BFE(lua_State* luaSt)
         {
             END_MW_NAMED_ARG
         };
-    
+
     b.type = NoBFE;
     return createBFE(luaSt, argTable, &b, &filename);
 };
@@ -110,6 +110,8 @@ int setBFE(lua_State* luaSt, void* v)
 {
     *(BFE*) v = *checkBFE(luaSt, 2);
     // believe that number corresponds to number of types?
+    // Needs meaningful return value!!!
+    return 0;
 }
 
 static const luaL_reg metaMethodsBFE[] =
@@ -152,14 +154,14 @@ int registerBFE(lua_State* luaSt)
 int registerBFEKinds(lua_State* luaSt)
 {
     int table;
-    
+
     lua_newtable(luaSt);
     table =  lua_gettop(luaSt);
-    
+
     setModelTableItem(luaSt, table, createEXP_BFE, "EXPBFE");
     setModelTableItem(luaSt, table, createNo_BFE, "none");
-    
+
     lua_setglobal(luaSt, "BFE_Models");
-    
+
     return 0;
 }
