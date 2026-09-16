@@ -125,6 +125,7 @@ ExternalProject_Add(
   DEPENDS fftw zlib
   URL https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.9.tar.bz2
   URL_HASH SHA256=dfb72762531170847af3e4a0f21d77d7b23cf36f67ce7ce9033659273677d80b
+  PATCH_COMMAND ${CMAKE_COMMAND} -E touch_nocreate <SOURCE_DIR>/configure
   CONFIGURE_COMMAND
     "<SOURCE_DIR>/configure"
     --disable-shared
