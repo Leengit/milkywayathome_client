@@ -107,6 +107,7 @@ ExternalProject_Add(
   URL_HASH SHA256=56c932549852cddcfafdab3820b0200c7742675be92179e59e6215b340e26467
   CONFIGURE_COMMAND
     "<SOURCE_DIR>/configure"
+    --disable-maintainer-mode
     --disable-shared
     --enable-static
     --prefix=<INSTALL_DIR>
@@ -128,9 +129,10 @@ ExternalProject_Add(
   DEPENDS fftw zlib
   URL https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.9.tar.bz2
   URL_HASH SHA256=dfb72762531170847af3e4a0f21d77d7b23cf36f67ce7ce9033659273677d80b
-  PATCH_COMMAND ${CMAKE_COMMAND} -E touch_nocreate <SOURCE_DIR>/configure
+  # PATCH_COMMAND ${CMAKE_COMMAND} -E touch_nocreate <SOURCE_DIR>/configure
   CONFIGURE_COMMAND
     "<SOURCE_DIR>/configure"
+    --disable-maintainer-mode
     --disable-shared
     --enable-static
     --prefix=<INSTALL_DIR>
@@ -201,6 +203,7 @@ ExternalProject_Add(
   URL_HASH SHA256=a3c2b80201b89e68616f4ad30bc66aee4927c3ce50e33929ca819d5c43538898
   CONFIGURE_COMMAND
     "<SOURCE_DIR>/configure"
+    --disable-maintainer-mode
     --disable-shared
     --enable-static
     --prefix=<INSTALL_DIR>
@@ -223,6 +226,7 @@ ExternalProject_Add(
   URL https://www.mpfr.org/mpfr-current/mpfr-4.2.2.tar.gz
   URL_HASH SHA256=826cbb24610bd193f36fde172233fb8c009f3f5c2ad99f644d0dea2e16a20e42
   CONFIGURE_COMMAND touch "<SOURCE_DIR>/aclocal.m4" "<SOURCE_DIR>/acinclude.m4" "<SOURCE_DIR>/Makefile.in" "<SOURCE_DIR>/Makefile.am" && "<SOURCE_DIR>/configure"
+    --disable-maintainer-mode
     --disable-shared
     --enable-static
     --prefix=<INSTALL_DIR>
@@ -262,6 +266,7 @@ ExternalProject_Add(
   URL_HASH SHA256=9fb7aefa8d3f9b8bc73ec7aeb1cfe61607931f0976ee42795a0172fe1762abaa
   CONFIGURE_COMMAND
     "<SOURCE_DIR>/configure"
+    --disable-maintainer-mode
     --disable-shared
     --enable-cxx
     --enable-fortran
@@ -641,12 +646,6 @@ target_link_libraries(nbody
     "${MY_OPENMPI_INSTALL_DIR}/lib/libmpi.a"
     "${MY_OPENMPI_INSTALL_DIR}/lib/libopen-pal.a"
     "${MY_OPENMPI_INSTALL_DIR}/lib/libprrte.a"
-    "${MY_OPENMPI_INSTALL_DIR}/lib/libpmix.a"
-    "${MY_OPENMPI_INSTALL_DIR}/lib/libhwloc.a"
-    "${MY_OPENMPI_INSTALL_DIR}/lib/libevent_pthreads.a"
-    "${MY_OPENMPI_INSTALL_DIR}/lib/libevent_extra.a"
-    "${MY_OPENMPI_INSTALL_DIR}/lib/libevent_core.a"
-    "${MY_OPENMPI_INSTALL_DIR}/lib/libevent.a"
     "${MY_FFTW_INSTALL_DIR}/lib/libfftw3.a"
     "${MY_ZLIB_INSTALL_DIR}/lib/libz.a"
     gfortran
