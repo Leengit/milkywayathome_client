@@ -28,6 +28,9 @@ set(nbody_VERSION_MINOR 96
 set(nbody_VERSION "${nbody_VERSION_MAJOR}.${nbody_VERSION_MINOR}"
           CACHE INTERNAL "N-body version number")
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 include(MaybeDlCheck)
 include(MWLink)
 include(SpecialLibs)
