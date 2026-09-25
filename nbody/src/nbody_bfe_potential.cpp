@@ -1,4 +1,5 @@
 #include "nbody_bfe_potential.h"
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -85,13 +86,42 @@ struct exp_bfe_t {
   the desired BFE use, interpret the instructions in the YAML file and call to EXP to load in the
   relevant data.
 */
-exp_bfe_t *exp_bfe_open(const char *yaml_filename)
+exp_bfe_t *exp_bfe_open(const char *config_filename)
 {
-    try {
-	YAML::Node yaml_node = YAML::LoadFile(yaml_filename);
-	const std::string basis_type = yaml_node["basis"]["type"].as<std::string>();
-	std::shared_ptr<BasisClasses::BiorthBasis> basis = BasisClasses::BiorthBasis::factory(yaml_node["basis"]);
-	const std::string coefs_path = yaml_node["output"]["coefficients"].as<std::string>();
+    try
+    {
+	const YAML::Node config_node = YAML::LoadFile(config_filename);
+	const YAML::Node& global_node = config_node["Global"];
+	const YAML::Node& components_node = config_node["Components"];
+	const YAML::Node& outputs_node = config_node["Output"];
+	const std::string runtag = global_node["runtag"].as<std::string>();
+
+	int num_components = 0;
+	std::vector<std::string> component_names;
+	std::vector<const YAML::Node*> force_nodes;
+	std::vector<std::string> force_ids;
+	for(YAML::const_iterator it_components = components_node.begin();
+	    it_components != components_node.end();
+	    ++it_components, ++num_components)
+	{
+	    const YAML::Node& component_node = *it_components;
+	    const std::string component_name = component_node["name"].as<std::string>();
+	    const YAML::Node& force_node = component_node["force"];
+	    const std::string force_id = force_node["id"].as<std::string>();
+	    // const std::string force_node_text = YAML::Dump(force_node);
+	    std::shared_ptr<BasisClasses::BiorthBasis> basis = BasisClasses::BiorthBasis::factory(force_node);
+	    std::filesystem::path outcoef_path = config_filename;
+	    outcoef_path.replace_filename("outcoef." + component_name + "." + runtag);
+	    const std::string outcoef_filename = outcoef_path.string();
+
+	    component_names.push_back(component_name);
+	    force_nodes.push_back(&force_node); // aka force_blocks
+	    force_ids.push_back(force_id);
+	}
+
+	const std::string basis_type = config_node["basis"]["type"].as<std::string>();
+	std::shared_ptr<BasisClasses::BiorthBasis> basis = BasisClasses::BiorthBasis::factory(config_node["basis"]);
+	const std::string coefs_path = config_node["output"]["coefficients"].as<std::string>();
 	MW_H5FileHandle file_id(H5Fopen(coefs_path.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT));
 	if (file_id < 0) {
 	    throw YAML::Exception(YAML::Mark::null_mark(), "Error opening coefficients file " + coefs_path);
@@ -101,7 +131,7 @@ exp_bfe_t *exp_bfe_open(const char *yaml_filename)
 	    throw YAML::Exception(YAML::Mark::null_mark(), "Error opening coefficients dataset file " + coefs_path + "/coefficients");
 	}
 
-	// Needed???!!! const int max_l = yaml_node["bfe"]["max_l"].as<int>();
+	// Needed???!!! const int max_l = config_node["bfe"]["max_l"].as<int>();
 
 	// 3. Extract the coefficient vector corresponding to each target time snapshot
 	std::vector<double> aTimes; // (time index)
@@ -109,7 +139,7 @@ exp_bfe_t *exp_bfe_open(const char *yaml_filename)
 
     } catch (const YAML::Exception& e) {
 	std::cerr << "Error parsing YAML file "
-		  << (yaml_filename ? '\'' + std::string(yaml_filename) + '\'' : "(NULL)")
+		  << (config_filename ? '\'' + std::string(config_filename) + '\'' : "(NULL)")
 		  << ": " << e.what() << std::endl;
 	throw;
     }
