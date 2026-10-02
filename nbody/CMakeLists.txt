@@ -115,9 +115,12 @@ ExternalProject_Add(
     CFLAGS=-fPIC
     CXXFLAGS=-fPIC
     FCFLAGS=-fPIC
+    LDFLAGS=-L/usr/lib/x86_64-linux-gnu
   BUILD_COMMAND make -j 20
   INSTALL_COMMAND make install
-  BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libfftw3.a
+  BUILD_BYPRODUCTS
+    <INSTALL_DIR>/lib/libfftw3.a
+    <INSTALL_DIR>/include/fftw3.h
 )
 ExternalProject_Get_Property(fftw SOURCE_DIR)
 set(MY_FFTW_SOURCE_DIR ${SOURCE_DIR})
@@ -129,7 +132,7 @@ ExternalProject_Add(
   DEPENDS fftw zlib
   URL https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.9.tar.bz2
   URL_HASH SHA256=dfb72762531170847af3e4a0f21d77d7b23cf36f67ce7ce9033659273677d80b
-  # PATCH_COMMAND ${CMAKE_COMMAND} -E touch_nocreate <SOURCE_DIR>/configure
+  PATCH_COMMAND ${CMAKE_COMMAND} -E touch_nocreate <SOURCE_DIR>/configure
   CONFIGURE_COMMAND
     "<SOURCE_DIR>/configure"
     --disable-maintainer-mode
@@ -140,47 +143,67 @@ ExternalProject_Add(
     CFLAGS=-fPIC
     CXXFLAGS=-fPIC
     FCFLAGS=-fPIC
+    LDFLAGS=-L/usr/lib/x86_64-linux-gnu
   BUILD_COMMAND make -j 20
   INSTALL_COMMAND make install
   BUILD_BYPRODUCTS
-    <INSTALL_DIR>/lib/libmpi_usempif08.a
-    <INSTALL_DIR>/lib/libmpi_usempi_ignore_tkr.a
-    <INSTALL_DIR>/lib/libmpi_mpifh.a
+    <INSTALL_DIR>/include/mpi-ext.h
+    <INSTALL_DIR>/include/mpi.h
+    <INSTALL_DIR>/include/mpi_portable_platform.h
+    <INSTALL_DIR>/include/mpif-c-constants-decl.h
+    <INSTALL_DIR>/include/mpif-config.h
+    <INSTALL_DIR>/include/mpif-constants.h
+    <INSTALL_DIR>/include/mpif-ext.h
+    <INSTALL_DIR>/include/mpif-externals.h
+    <INSTALL_DIR>/include/mpif-handles.h
+    <INSTALL_DIR>/include/mpif-io-constants.h
+    <INSTALL_DIR>/include/mpif-io-handles.h
+    <INSTALL_DIR>/include/mpif-sentinels.h
+    <INSTALL_DIR>/include/mpif-sizeof.h
+    <INSTALL_DIR>/include/mpif.h
+    <INSTALL_DIR>/include/prte.h
+    <INSTALL_DIR>/include/prte_version.h
     <INSTALL_DIR>/lib/libmpi.a
+    <INSTALL_DIR>/lib/libmpi_mpifh.a
+    <INSTALL_DIR>/lib/libmpi_usempi_ignore_tkr.a
+    <INSTALL_DIR>/lib/libmpi_usempif08.a
     <INSTALL_DIR>/lib/libopen-pal.a
     <INSTALL_DIR>/lib/libprrte.a
-    <INSTALL_DIR>/lib/libpmix.a
-    <INSTALL_DIR>/lib/libhwloc.a
-    <INSTALL_DIR>/lib/libevent_pthreads.a
-    <INSTALL_DIR>/lib/libevent_extra.a
-    <INSTALL_DIR>/lib/libevent_core.a
-    <INSTALL_DIR>/lib/libevent.a
 )
 ExternalProject_Get_Property(openmpi SOURCE_DIR)
 set(MY_OPENMPI_SOURCE_DIR ${SOURCE_DIR})
 ExternalProject_Get_Property(openmpi INSTALL_DIR)
 set(MY_OPENMPI_INSTALL_DIR ${INSTALL_DIR})
 
+set(BOOST_USER_CONFIG_REL "${CMAKE_CURRENT_BINARY_DIR}/user-config.jam")
+get_filename_component(BOOST_USER_CONFIG "${BOOST_USER_CONFIG_REL}" ABSOLUTE)
+# file(WRITE ${BOOST_USER_CONFIG} "using mpi : ${MY_OPENMPI_INSTALL_DIR}/bin/mpic++ ;\n")
 ExternalProject_Add(
   boost
   DEPENDS openmpi fftw zlib
   URL https://archives.boost.io/release/1.89.0/source/boost_1_89_0.tar.gz
   URL_HASH SHA256=9de758db755e8330a01d995b0a24d09798048400ac25c03fc5ea9be364b13c93
   CONFIGURE_COMMAND
+    env PATH=${MY_OPENMPI_INSTALL_DIR}/bin:$ENV{PATH}
     "<SOURCE_DIR>/bootstrap.sh"
     --prefix=<INSTALL_DIR>
     CFLAGS=-fPIC
     CXXFLAGS=-fPIC
     FCFLAGS=-fPIC
+    LDFLAGS=-L/usr/lib/x86_64-linux-gnu
+    && ${CMAKE_COMMAND} -E echo "using mpi ;" > ${BOOST_USER_CONFIG}
   BUILD_COMMAND
+    env PATH=${MY_OPENMPI_INSTALL_DIR}/bin:$ENV{PATH}
     "<SOURCE_DIR>/b2"
     --prefix=<INSTALL_DIR>
+    --user-config=${BOOST_USER_CONFIG}
     --with-mpi
     cflags=-fPIC
     cxxflags=-fPIC
     link=static
     runtime-link=static
   INSTALL_COMMAND
+    env PATH=${MY_OPENMPI_INSTALL_DIR}/bin:$ENV{PATH}
     "<SOURCE_DIR>/b2"
     --prefix=<INSTALL_DIR>
     --with-mpi
@@ -211,9 +234,12 @@ ExternalProject_Add(
     CFLAGS=-fPIC
     CXXFLAGS=-fPIC
     FCFLAGS=-fPIC
+    LDFLAGS=-L/usr/lib/x86_64-linux-gnu
   BUILD_COMMAND make -j 20
   INSTALL_COMMAND make install
-  BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libgmp.a
+  BUILD_BYPRODUCTS
+    <INSTALL_DIR>/include/gmp.h
+    <INSTALL_DIR>/lib/libgmp.a
 )
 ExternalProject_Get_Property(gmp SOURCE_DIR)
 set(MY_GMP_SOURCE_DIR ${SOURCE_DIR})
@@ -235,6 +261,7 @@ ExternalProject_Add(
     CFLAGS=-fPIC
     CXXFLAGS=-fPIC
     FCFLAGS=-fPIC
+    LDFLAGS=-L/usr/lib/x86_64-linux-gnu
   BUILD_COMMAND make -j 20
   INSTALL_COMMAND make install
   BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libmpfr.a
@@ -278,6 +305,7 @@ ExternalProject_Add(
     CFLAGS=-fPIC
     CXXFLAGS=-fPIC
     FCFLAGS=-fPIC
+    LDFLAGS=-L/usr/lib/x86_64-linux-gnu
   BUILD_COMMAND make -j 20
   INSTALL_COMMAND make install
   BUILD_BYPRODUCTS
@@ -646,10 +674,14 @@ target_link_libraries(nbody
     "${MY_OPENMPI_INSTALL_DIR}/lib/libmpi.a"
     "${MY_OPENMPI_INSTALL_DIR}/lib/libopen-pal.a"
     "${MY_OPENMPI_INSTALL_DIR}/lib/libprrte.a"
+    "${MY_OPENMPI_INSTALL_DIR}/lib/libpmix.a"
+    "${MY_OPENMPI_INSTALL_DIR}/lib/libhwloc.a"
+    "${MY_OPENMPI_INSTALL_DIR}/lib/libevent_pthreads.a"
+    "${MY_OPENMPI_INSTALL_DIR}/lib/libevent_extra.a"
+    "${MY_OPENMPI_INSTALL_DIR}/lib/libevent_core.a"
+    "${MY_OPENMPI_INSTALL_DIR}/lib/libevent.a"
     "${MY_FFTW_INSTALL_DIR}/lib/libfftw3.a"
     "${MY_ZLIB_INSTALL_DIR}/lib/libz.a"
-    gfortran
-    quadmath
 )
 if(SYSTEM_IS_X86)
   enable_sse2(nbody)
