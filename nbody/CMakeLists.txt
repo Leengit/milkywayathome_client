@@ -112,6 +112,8 @@ ExternalProject_Add(
     --enable-static
     --prefix=<INSTALL_DIR>
     --with-pic
+    CC=gcc
+    CXX=g++
     CFLAGS=-fPIC
     CXXFLAGS=-fPIC
     FCFLAGS=-fPIC
@@ -130,8 +132,8 @@ set(MY_FFTW_INSTALL_DIR ${INSTALL_DIR})
 ExternalProject_Add(
   openmpi
   DEPENDS fftw zlib
-  URL https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.9.tar.bz2
-  URL_HASH SHA256=dfb72762531170847af3e4a0f21d77d7b23cf36f67ce7ce9033659273677d80b
+  URL https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.11.tar.bz2
+  URL_HASH SHA256=e668a3c4acd50c41dc204c8a6dd98a611e0f26af89cf677577fa9be8a2698003
   PATCH_COMMAND ${CMAKE_COMMAND} -E touch_nocreate <SOURCE_DIR>/configure
   CONFIGURE_COMMAND
     "<SOURCE_DIR>/configure"
@@ -140,6 +142,8 @@ ExternalProject_Add(
     --enable-static
     --prefix=<INSTALL_DIR>
     --with-pic
+    CC=gcc
+    CXX=g++
     CFLAGS=-fPIC
     CXXFLAGS=-fPIC
     FCFLAGS=-fPIC
@@ -177,23 +181,24 @@ set(MY_OPENMPI_INSTALL_DIR ${INSTALL_DIR})
 
 set(BOOST_USER_CONFIG_REL "${CMAKE_CURRENT_BINARY_DIR}/user-config.jam")
 get_filename_component(BOOST_USER_CONFIG "${BOOST_USER_CONFIG_REL}" ABSOLUTE)
-# file(WRITE ${BOOST_USER_CONFIG} "using mpi : ${MY_OPENMPI_INSTALL_DIR}/bin/mpic++ ;\n")
+file(WRITE ${BOOST_USER_CONFIG} "using mpi ;\n")
+# && ${CMAKE_COMMAND} -E echo "using mpi \\;" > ${BOOST_USER_CONFIG}
 ExternalProject_Add(
   boost
   DEPENDS openmpi fftw zlib
   URL https://archives.boost.io/release/1.89.0/source/boost_1_89_0.tar.gz
   URL_HASH SHA256=9de758db755e8330a01d995b0a24d09798048400ac25c03fc5ea9be364b13c93
   CONFIGURE_COMMAND
-    env PATH=${MY_OPENMPI_INSTALL_DIR}/bin:$ENV{PATH}
+    ${CMAKE_COMMAND} -E env PATH=${MY_OPENMPI_INSTALL_DIR}/bin:$ENV{PATH}
     "<SOURCE_DIR>/bootstrap.sh"
     --prefix=<INSTALL_DIR>
+    --without-libraries=python
     CFLAGS=-fPIC
     CXXFLAGS=-fPIC
     FCFLAGS=-fPIC
     LDFLAGS=-L/usr/lib/x86_64-linux-gnu
-    && ${CMAKE_COMMAND} -E echo "using mpi ;" > ${BOOST_USER_CONFIG}
   BUILD_COMMAND
-    env PATH=${MY_OPENMPI_INSTALL_DIR}/bin:$ENV{PATH}
+    ${CMAKE_COMMAND} -E env PATH=${MY_OPENMPI_INSTALL_DIR}/bin:$ENV{PATH}
     "<SOURCE_DIR>/b2"
     --prefix=<INSTALL_DIR>
     --user-config=${BOOST_USER_CONFIG}
@@ -203,7 +208,7 @@ ExternalProject_Add(
     link=static
     runtime-link=static
   INSTALL_COMMAND
-    env PATH=${MY_OPENMPI_INSTALL_DIR}/bin:$ENV{PATH}
+    ${CMAKE_COMMAND} -E env PATH=${MY_OPENMPI_INSTALL_DIR}/bin:$ENV{PATH}
     "<SOURCE_DIR>/b2"
     --prefix=<INSTALL_DIR>
     --with-mpi
@@ -231,6 +236,8 @@ ExternalProject_Add(
     --enable-static
     --prefix=<INSTALL_DIR>
     --with-pic
+    CC=gcc
+    CXX=g++
     CFLAGS=-fPIC
     CXXFLAGS=-fPIC
     FCFLAGS=-fPIC
@@ -258,6 +265,8 @@ ExternalProject_Add(
     --prefix=<INSTALL_DIR>
     --with-gmp=${MY_GMP_INSTALL_DIR}
     --with-pic
+    CC=gcc
+    CXX=g++
     CFLAGS=-fPIC
     CXXFLAGS=-fPIC
     FCFLAGS=-fPIC
@@ -302,6 +311,8 @@ ExternalProject_Add(
     --enable-static-exec
     --prefix=<INSTALL_DIR>
     --with-pic
+    CC=gcc
+    CXX=g++
     CFLAGS=-fPIC
     CXXFLAGS=-fPIC
     FCFLAGS=-fPIC
