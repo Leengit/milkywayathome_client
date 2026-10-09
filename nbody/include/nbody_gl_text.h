@@ -45,20 +45,20 @@ private:
     GLuint vao;
     const texture_font_t* font;
 
-    PACKED
+    MW_PACKED
     struct TextVertex
     {
         float x, y; // position
         float s, t; // texture position
     };
 
-    PACKED
+    MW_PACKED
     struct TextVertexArray
     {
         TextVertex data[4];
     };
 
-    PACKED
+    MW_PACKED
     struct TextVertexIndexArray
     {
         GLuint data[6];

@@ -90,14 +90,14 @@
   #define NEVER_INLINE __attribute__((noinline))
   #define INTERNAL __attribute__((visibility("internal")))
   #define WEAK __attribute__((weak))
-  #define PACKED __attribute__((packed))
+  #define MW_PACKED __attribute__((packed))
 #else
   #define HOT
   #define CONST_F
   #define ALWAYS_INLINE __forceinline
   #define NEVER_INLINE __declspec(noinline)
   #define INTERNAL
-  #define PACKED
+  #define MW_PACKED
 
   /* Only sort of */
   #define WEAK __declspec(selectany)
