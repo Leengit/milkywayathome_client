@@ -56,7 +56,7 @@ totalBodies           = 10000       -- -- NUMBER OF TOTAL BODIES                
 totalLightBodies      = 10000       -- -- NUMBER OF LIGHT MATTER BODIES                                        -- --
 
 nbodyLikelihoodMethod = "EMD"       -- -- HIST COMPARE METHOD                                                  -- --
-nbodyMinVersion       = "1.96"      -- -- MINIMUM APP VERSION                                                  -- --
+nbodyMinVersion       = "1.97"      -- -- MINIMUM APP VERSION                                                  -- --
 
 run_null_potential    = true       -- -- NULL POTENTIAL SWITCH                                                -- --
 use_tree_code         = false        -- -- USE TREE CODE NOT EXACT                                              -- --
@@ -311,7 +311,9 @@ function makeContext()
       timeEvolve  = evolveTime,
       timeBack    = revOrbTime,
       timestep    = get_timestep(),
-      eps2        = {2.5e-7, 2.5e-7, 2.5e-7}, -- 0.5 pc softening 
+      eps2        = {2.5e-7, 2.5e-7, 2.5e-7, 2.5e-7}, -- 0.5 pc softening
+      eps2_index  = {1, -1},
+      eps2_size   = 2,
       b           = orbit_parameter_b,
       r           = orbit_parameter_r,
       vx          = orbit_parameter_vx,
