@@ -55,6 +55,12 @@ cmake_dependent_option(NBODY_STATIC "Build Nbody as fully static binary" OFF
                                       "NOT NBODY_OPENCL;NOT ENABLE_CURSES" OFF)
 mark_as_advanced(NBODY_STATIC)
 maybe_static(${NBODY_STATIC})
+# It isn't building if we request that everything be static, but we can get some libraries to be
+# static.
+set(HDF5_USE_STATIC_LIBRARIES ON)
+set(Boost_USE_STATIC_LIBS ON)
+set(MPI_USE_STATIC_LIBS ON)
+set(ZLIB_USE_STATIC_LIBS ON)
 
 include_directories(${MILKYWAY_INCLUDE_DIR})
 include_directories(${MILKYWAY_INSTALL_INCLUDE_DIR})
@@ -84,6 +90,34 @@ endif()
 
 include(ExternalProject)
 
+# OpenMPI is required by EXP but we don't actually use it.  Instead use FakeMPI so that computers
+# running work units that don't have OpenMPI will not complain about its absence.
+ExternalProject_Add(
+  fakempi_external
+  GIT_REPOSITORY    https://github.com/ssciwr/FakeMPI.git
+  GIT_TAG           main
+  CMAKE_ARGS
+    "-DBUILD_SHARED_LIBS:BOOL=OFF"
+    "-DBUILD_STATIC_LIBS:BOOL=ON"
+    "-DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>"
+    "-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON"
+    "-DBoost_USE_STATIC_LIBS:BOOL=ON"
+    "-DHDF5_USE_STATIC_LIBRARIES:BOOL=ON"
+    "-DMPI_USE_STATIC_LIBS:BOOL=ON"
+    # "-DOPENSSL_USE_STATIC_LIBS:BOOL=ON"
+    "-DZLIB_USE_STATIC_LIBS:BOOL=ON"
+  UPDATE_DISCONNECTED ON # Don't check github for updates every time we `make`
+  UPDATE_COMMAND    ""
+)
+ExternalProject_Get_Property(fakempi_external SOURCE_DIR)
+set(MY_FAKEMPI_EXTERNAL_SOURCE_DIR ${SOURCE_DIR})
+ExternalProject_Get_Property(fakempi_external INSTALL_DIR)
+set(MY_FAKEMPI_EXTERNAL_INSTALL_DIR ${INSTALL_DIR})
+# Make sure that cmake finds FakeMPI rather than system OpenMPI, and doesn't care whether it works.
+set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON)
+list(PREPEND CMAKE_PREFIX_PATH "${MY_FAKEMPI_EXTERNAL_INSTALL_DIR}")
+set(MPI_CXX_SKIP_MPICXX TRUE)
+
 # If EXP won't build you may need to install some system tools:
 #   sudo apt install --no-upgrade flex bison texinfo python3-pip
 ExternalProject_Add(
@@ -101,7 +135,10 @@ ExternalProject_Add(
     "-DENABLE_CUDA:BOOL=OFF"
     "-DENABLE_MINIMAL:BOOL=ON"
     "-DENABLE_PNG:BOOL=OFF"
-    "-DOPENSSL_USE_STATIC_LIBS:BOOL=ON"
+    "-DBoost_USE_STATIC_LIBS:BOOL=ON"
+    "-DHDF5_USE_STATIC_LIBRARIES:BOOL=ON"
+    "-DMPI_USE_STATIC_LIBS:BOOL=ON"
+    "-DZLIB_USE_STATIC_LIBS:BOOL=ON"
   BUILD_BYPRODUCTS
     <INSTALL_DIR>/lib/libexpui.a
     <INSTALL_DIR>/lib/libexputil.a
@@ -350,28 +387,22 @@ if(HAVE_LIBRT)
   list(APPEND nbody_link_libs rt)
 endif()
 
+message(STATUS "MY_FAKEMPI_EXTERNAL_SOURCE_DIR = ${MY_FAKEMPI_EXTERNAL_SOURCE_DIR}")
+message(STATUS "MY_FAKEMPI_EXTERNAL_INSTALL_DIR = ${MY_FAKEMPI_EXTERNAL_INSTALL_DIR}")
 message(STATUS "MY_EXP_SOURCE_DIR = ${MY_EXP_SOURCE_DIR}")
 message(STATUS "MY_EXP_INSTALL_DIR = ${MY_EXP_INSTALL_DIR}")
 
-# Find the Python interpreter and development headers
-set(HDF5_USE_STATIC_LIBRARIES ON)
-set(Boost_USE_STATIC_LIBS ON)
-set(OPENSSL_USE_STATIC_LIBS TRUE)
-# We don't use MPI, so hopefully it's okay to link against its shared library; the static library
-# doesn't ship with apt install.
-#    set(MPI_USE_STATIC_LIBS ON)
-set(ZLIB_USE_STATIC_LIBS ON)
-
 # If these find_package commands fail, you may need to install the software with:
-#   sudo apt install --no-upgrade libaec-dev libboost-dev libeigen3-dev libfftw3-dev libgcc-13-dev libgfortran-13-dev libgmp-dev libgmp10 libhdf5-dev libmpfr-dev libmpfr6 libncurses-dev libopenmpi-dev libpng-dev libreadline-dev libtirpc-dev python3-pip zlib1g-dev
-find_package(HDF5 COMPONENTS C CXX HL REQUIRED)
-find_package(Eigen3 REQUIRED NO_MODULE)
-# find_package(Boost REQUIRED COMPONENTS filesystem system)
-find_package(MPI REQUIRED)
-find_package(OpenSSL REQUIRED)
-message(STATUS "OpenSSL Crypto Library: ${OPENSSL_CRYPTO_LIBRARY}")
+#   sudo apt install --no-upgrade libaec-dev libboost-dev libeigen3-dev libfftw3-dev libgcc-13-dev libgfortran-13-dev libgmp-dev libgmp10 libhdf5-dev libmpfr-dev libmpfr6 libncurses-dev libpng-dev libreadline-dev libtirpc-dev python3-pip zlib1g-dev
+
 # find_package(ZLIB REQUIRED)
 # find_package(Python COMPONENTS Interpreter Development REQUIRED)
+# find_package(Boost REQUIRED COMPONENTS filesystem system)
+find_package(OpenSSL REQUIRED)
+message(STATUS "OpenSSL Crypto Library: ${OPENSSL_CRYPTO_LIBRARY}")
+find_package(MPI REQUIRED)
+find_package(Eigen3 REQUIRED NO_MODULE)
+find_package(HDF5 COMPONENTS C CXX HL REQUIRED MODULE)
 
 add_library(nbody STATIC ${nbody_lib_src} ${nbody_lib_headers})
 add_dependencies(nbody exp)
