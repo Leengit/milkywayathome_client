@@ -101,6 +101,7 @@ ExternalProject_Add(
     "-DENABLE_CUDA:BOOL=OFF"
     "-DENABLE_MINIMAL:BOOL=ON"
     "-DENABLE_PNG:BOOL=OFF"
+    "-DOPENSSL_USE_STATIC_LIBS:BOOL=ON"
   BUILD_BYPRODUCTS
     <INSTALL_DIR>/lib/libexpui.a
     <INSTALL_DIR>/lib/libexputil.a
@@ -355,6 +356,7 @@ message(STATUS "MY_EXP_INSTALL_DIR = ${MY_EXP_INSTALL_DIR}")
 # Find the Python interpreter and development headers
 set(HDF5_USE_STATIC_LIBRARIES ON)
 set(Boost_USE_STATIC_LIBS ON)
+set(OPENSSL_USE_STATIC_LIBS TRUE)
 # We don't use MPI, so hopefully it's okay to link against its shared library; the static library
 # doesn't ship with apt install.
 #    set(MPI_USE_STATIC_LIBS ON)
@@ -362,11 +364,12 @@ set(ZLIB_USE_STATIC_LIBS ON)
 
 # If these find_package commands fail, you may need to install the software with:
 #   sudo apt install --no-upgrade libaec-dev libboost-dev libeigen3-dev libfftw3-dev libgcc-13-dev libgfortran-13-dev libgmp-dev libgmp10 libhdf5-dev libmpfr-dev libmpfr6 libncurses-dev libopenmpi-dev libpng-dev libreadline-dev libtirpc-dev python3-pip zlib1g-dev
-# find_library(GFORTRAN_LIB NAMES gfortran)
 find_package(HDF5 COMPONENTS C CXX HL REQUIRED)
 find_package(Eigen3 REQUIRED NO_MODULE)
 # find_package(Boost REQUIRED COMPONENTS filesystem system)
 find_package(MPI REQUIRED)
+find_package(OpenSSL REQUIRED)
+message(STATUS "OpenSSL Crypto Library: ${OPENSSL_CRYPTO_LIBRARY}")
 # find_package(ZLIB REQUIRED)
 # find_package(Python COMPONENTS Interpreter Development REQUIRED)
 
@@ -396,6 +399,7 @@ target_link_libraries(nbody
     # Boost::system
     MPI::MPI_CXX
     # ZLIB::ZLIB
+    OpenSSL::Crypto OpenSSL::SSL
     gfortran
 )
 if(SYSTEM_IS_X86)
