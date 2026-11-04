@@ -28,6 +28,11 @@ set(nbody_VERSION_MINOR 97
 set(nbody_VERSION "${nbody_VERSION_MAJOR}.${nbody_VERSION_MINOR}"
           CACHE INTERNAL "N-body version number")
 
+# Setting minimum version should be more flexible than setting the
+# version, but it doesn't work somehow.
+# set(GCC_MIN_VERSION "13")
+# set(GXX_MIN_VERSION "13")
+# set(GFORTRAN_MIN_VERSION "13")
 set(CMAKE_C_COMPILER gcc-13)
 set(CMAKE_CXX_COMPILER g++-13)
 set(CMAKE_Fortran_COMPILER gfortran-13)
@@ -393,7 +398,7 @@ message(STATUS "MY_EXP_SOURCE_DIR = ${MY_EXP_SOURCE_DIR}")
 message(STATUS "MY_EXP_INSTALL_DIR = ${MY_EXP_INSTALL_DIR}")
 
 # If these find_package commands fail, you may need to install the software with:
-#   sudo apt install --no-upgrade libaec-dev libboost-dev libeigen3-dev libfftw3-dev libgcc-13-dev libgfortran-13-dev libgmp-dev libgmp10 libhdf5-dev libmpfr-dev libmpfr6 libncurses-dev libpng-dev libreadline-dev libtirpc-dev python3-pip zlib1g-dev
+#   sudo apt install --no-upgrade libaec-dev libboost-dev libeigen3-dev libfftw3-dev libgcc-13-dev libgfortran-13-dev libgmp-dev libgmp10 libhdf5-dev libmpfr-dev libmpfr6 libncurses-dev libpng-dev libreadline-dev libtirpc-dev zlib1g-dev
 
 # find_package(ZLIB REQUIRED)
 # find_package(Python COMPONENTS Interpreter Development REQUIRED)
