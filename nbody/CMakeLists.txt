@@ -124,7 +124,7 @@ list(PREPEND CMAKE_PREFIX_PATH "${MY_FAKEMPI_EXTERNAL_INSTALL_DIR}")
 set(MPI_CXX_SKIP_MPICXX TRUE)
 
 # If EXP won't build you may need to install some system tools:
-#   sudo apt install --no-upgrade flex bison texinfo python3-pip
+#   sudo apt install --no-upgrade bison flex hdf5-tools python3-pip texinfo
 ExternalProject_Add(
   exp
   GIT_REPOSITORY https://github.com/EXP-code/EXP.git
