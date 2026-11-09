@@ -6,8 +6,10 @@
 #include <unordered_set>
 #include <yaml-cpp/yaml.h>
 #include <Eigen/Eigen>
+#include <H5Cpp.h>
 #include "BiorthBasis.H"
 
+// We don't need to define MW_H5FileHandle!!!
 /*
   Useful object for freeing H5 file handles
  */
@@ -72,32 +74,16 @@ public:
 /*
   These are the structures we will use in our C++ code, to enable us to call EXP.
 */
-struct exp_bfe_timestep_t {
-    // Each BasisClasses::BiorthBasis is for a particular time
-    bfe_real time = std::numeric_limits<bfe_real>::quiet_NaN();
-    // The acceleration for this contribution should be scaled by this weight
-    bfe_real weight = std::numeric_limits<bfe_real>::quiet_NaN();
-    // This is the raw data that EXP uses to compute acceleration and density.
-    std::shared_ptr<BasisClasses::BiorthBasis> bfe;
-};
-
 struct exp_bfe_t {
     // Struct that contains information about each component
-    struct exp_bfe_component {
-	// Remove any of these that we don't need!!!
-	std::string name;
-	std::string force_id;
-	const YAML::Node* force_node;
+    struct exp_bfe_component_t {
+	std::string component_name;
+	const YAML::Node component_node;
 	std::shared_ptr<BasisClasses::BiorthBasis> basis;
-	std::string filename;
-	MW_H5FileHandle file_id;
-	MW_H5FileHandle dataset_id;
+	const std::shared_ptr<CoefClasses::Coefs> coefs;
     };
-    std::vector<exp_bfe_component> components;
-
-    // Interpolate values in aTimesteps to get values for time target_time
+    std::vector<exp_bfe_component_t> exp_bfe_components;
     bfe_real target_time = std::numeric_limits<bfe_real>::quiet_NaN();
-    std::vector<std::shared_ptr<exp_bfe_timestep_t> > aTimesteps;
 };
 
 /*
@@ -109,25 +95,25 @@ exp_bfe_t *exp_bfe_open(const char *config_filename)
 {
     // We will return exp_bfe as an ordinary pointer if there is no exception thrown.
     // If there is an error it will instead be automatically deleted.
-    auto exp_bfe = std::unique_ptr<exp_bfe_t>(new exp_bfe_t);
+    std::unique_ptr<exp_bfe_t> exp_bfe = std::unique_ptr<exp_bfe_t>(new exp_bfe_t);
     try
     {
 	// Load in the configuration file
 	const YAML::Node config_node = YAML::LoadFile(config_filename);
 
 	// Get information from Global
-	const YAML::Node& global_node = config_node["Global"];
+	const YAML::Node global_node = config_node["Global"];
 	const std::string runtag = global_node["runtag"].as<std::string>();
 
 	// Get information from Output
-	const YAML::Node& outputs_node = config_node["Output"];
+	const YAML::Node outputs_node = config_node["Output"];
 
 	std::unordered_set<std::string> outcoeff_set;
 	for(YAML::const_iterator it_outputs = outputs_node.begin();
 	    it_outputs != outputs_node.end();
 	    ++it_outputs)
 	{
-	    const YAML::Node& output_node = *it_outputs;
+	    const YAML::Node output_node = *it_outputs;
 	    const std::string output_id = output_node["id"].as<std::string>();
 	    if (output_id == "outcoef") {
 		const std::string output_name = output_node["parameters"]["name"].as<std::string>();
@@ -135,19 +121,19 @@ exp_bfe_t *exp_bfe_open(const char *config_filename)
 	    }
 	}
 
-	// Get information from Components and save it later
-	const YAML::Node& components_node = config_node["Components"];
+	// Get information from Components and save it for later
+	const YAML::Node components_node = config_node["Components"];
 	for(YAML::const_iterator it_components = components_node.begin();
 	    it_components != components_node.end();
 	    ++it_components)
 	{
-	    const YAML::Node& component_node = *it_components;
+	    const YAML::Node component_node = *it_components;
 	    const std::string component_name = component_node["name"].as<std::string>();
 	    const std::unordered_set<std::string>::iterator it = outcoeff_set.find(component_name);
 	    // Don't bother with this component if we did not output its outcoef.
 	    if (it != outcoeff_set.end()) {
 		// Instantiate a BiorthBasis structure
-		const YAML::Node& force_node = component_node["force"];
+		const YAML::Node force_node = component_node["force"];
 		const std::string force_id = force_node["id"].as<std::string>();
 		std::shared_ptr<BasisClasses::BiorthBasis> basis = BasisClasses::BiorthBasis::factory(force_node);
 		// Load in coefficents.
@@ -155,23 +141,10 @@ exp_bfe_t *exp_bfe_open(const char *config_filename)
 		std::filesystem::path outcoef_path = config_filename;
 		outcoef_path.replace_filename("outcoef." + component_name + "." + runtag);
 		const std::string outcoef_filename = outcoef_path.string();
-		MW_H5FileHandle file_id(H5Fopen(outcoef_filename.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT));
-		if (file_id < 0) {
-		    throw YAML::Exception(YAML::Mark::null_mark(), "Error opening coefficients file " + outcoef_filename);
-		}
-		MW_H5FileHandle dataset_id(H5Dopen2(file_id, "/coefficients", H5P_DEFAULT));
-		if (dataset_id < 0) {
-		    throw YAML::Exception(YAML::Mark::null_mark(), "Error opening coefficients dataset file " + outcoef_filename + "/coefficients");
-		}
+		const std::shared_ptr<CoefClasses::Coefs> coefs = CoefClasses::Coefs::factory(outcoef_filename);
 		// Save everything we've loaded for later use
-		exp_bfe->components.push_back({component_name, force_id, &force_node, basis, outcoef_filename, std::move(file_id), std::move(dataset_id)});
+		exp_bfe->exp_bfe_components.push_back({component_name, component_node, basis, coefs});
 	    }
-
-	    // Needed???!!! const int max_l = config_node["bfe"]["max_l"].as<int>();
-
-	    // 3. Extract the coefficient vector corresponding to each target time snapshot
-	    std::vector<double> aTimes; // (time index)
-	    std::vector<std::vector<double>> aCoefficients; // (time index, coef index)
 	}
 
     } catch (const YAML::Exception& e) {
@@ -197,28 +170,32 @@ mwvector exp_bfe_get_acceleration(exp_bfe_t *exp_bfe, mwvector xyz, bfe_real t)
 	return response;
     }
 
+    // If this event has a new time then load the coefs into the basis
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wfloat-equal"
     if (exp_bfe->target_time != t) {
 #pragma GCC diagnostic pop
 	exp_bfe->target_time = t;
-	// Write me!!!
-	// Figure out which timesteps we will need BFE coefficients for, and figure out their weights.
-	// From exp_bfe->aTimesteps, delete uneeded timesteps.
-	// To exp_bfe->aTimesteps, add needed timesteps.
-	// In exp_bfe->aTimesteps, set weights
-    }
-    Eigen::Vector3d accel{ Eigen::Vector3d::Zero() };
-    Eigen::Vector3d accelContribution;
-    for (const auto &timestep : exp_bfe->aTimesteps) {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wfloat-equal"
-	if (timestep && timestep->weight != 0.0) {
-#pragma GCC diagnostic pop
-	    accelContribution = timestep->bfe->getAccel(xyz.x, xyz.y, xyz.z);
-	    accel += accelContribution * timestep->weight;
+	// Does this interpolate time for us?!!!  What about extrapolate?!!!
+	for(std::vector<exp_bfe_t::exp_bfe_component_t>::iterator it_exp_bfe_components = exp_bfe->exp_bfe_components.begin();
+	    it_exp_bfe_components != exp_bfe->exp_bfe_components.end();
+	    ++it_exp_bfe_components)
+	{
+	    it_exp_bfe_components->basis->set_coefs(it_exp_bfe_components->coefs->getCoefStruct(t));
 	}
     }
+
+    // Ask for the acceleration based upon the basis and coefficients
+    Eigen::Vector3d accel{ Eigen::Vector3d::Zero() };
+    Eigen::Vector3d accelContribution;
+    for(std::vector<exp_bfe_t::exp_bfe_component_t>::iterator it_exp_bfe_components = exp_bfe->exp_bfe_components.begin();
+	it_exp_bfe_components != exp_bfe->exp_bfe_components.end();
+	++it_exp_bfe_components)
+    {
+	accelContribution = it_exp_bfe_components->basis->getAccel(xyz.x, xyz.y, xyz.z);
+	accel += accelContribution;
+    }
+
     response = { accel.x(), accel.y(), accel.z(), 0.0 };
     return response;
 }
@@ -235,10 +212,7 @@ bfe_real exp_bfe_get_density(exp_bfe_t *exp_bfe, mwvector xyz, bfe_real t)
 
 void exp_bfe_close(exp_bfe_t *exp_bfe)
 {
-    if (!exp_bfe) {
-	// Nothing to free
-	return;
-    }
-    // Write me!!!
+    delete exp_bfe; // This will call exp_bfe->exp_bfe_components.clear(), and recursively.
+
     return;
 }
