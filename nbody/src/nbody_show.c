@@ -287,14 +287,14 @@ char* showSpherical(const Spherical* s)
 char* showBFE(const BFE* b)
 {
     char* buf;
-    
+
     if (!b)
         return NULL;
-    
+
     if (0 > asprintf(&buf,
                      "{\n}"
                      "      type    = %s\n"
-                     "      exp_bfe = %g\n"
+                     "      exp_bfe = %p\n"
                      "    };\n",
                      showBfeT(b->type),
                      b->exp_bfe))
@@ -796,4 +796,3 @@ const char* showNBodyLikelihoodMethod(NBodyLikelihoodMethod x)
             return "Invalid NBodyLikelihoodMethod";
     }
 }
-
