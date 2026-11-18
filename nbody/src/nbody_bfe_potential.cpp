@@ -9,68 +9,6 @@
 #include <H5Cpp.h>
 #include "BiorthBasis.H"
 
-// We don't need to define MW_H5FileHandle!!!
-/*
-  Useful object for freeing H5 file handles
- */
-class MW_H5FileHandle {
-private:
-    hid_t id_;
-
-public:
-    // Initialize to -1 by default
-    MW_H5FileHandle() : id_(-1) {}
-
-    // Construct from an existing HDF5 file ID
-    explicit MW_H5FileHandle(hid_t id) : id_(id) {}
-
-    // Destructor closes the file if the ID is valid
-    ~MW_H5FileHandle() {
-        if (this->id_ >= 0) {
-            H5Fclose(this->id_);
-        }
-    }
-
-    // Delete copy semantics to prevent double-free/double-close errors
-    MW_H5FileHandle(const MW_H5FileHandle&) = delete;
-    MW_H5FileHandle& operator=(const MW_H5FileHandle&) = delete;
-
-    // Enable move semantics for safe ownership transfer
-    MW_H5FileHandle(MW_H5FileHandle&& other) noexcept : id_(other.id_) {
-        other.id_ = -1;
-    }
-
-    MW_H5FileHandle& operator=(MW_H5FileHandle&& other) noexcept {
-        if (this != &other) {
-            if (this->id_ >= 0) {
-                H5Fclose(this->id_);
-            }
-            this->id_ = other.id_;
-            other.id_ = -1;
-        }
-        return *this;
-    }
-
-    // Implicit conversion operator to behave seamlessly like a hid_t
-    operator hid_t() const { return this->id_; }
-
-    // Explicit getter for convenience
-    hid_t get() const { return this->id_; }
-
-    // Manually replace the handle
-    void reset(hid_t new_id = -1) {
-        if (this->id_ >= 0) {
-            H5Fclose(this->id_);
-        }
-        this->id_ = new_id;
-    }
-
-    // Get the value and relinquish responsibility for garbage collection
-    hid_t release() {
-	return std::exchange(this->id_, -1);
-    }
-};
-
 /*
   These are the structures we will use in our C++ code, to enable us to call EXP.
 */
