@@ -144,7 +144,7 @@ For the ratio arguments `[4]` and `[6]`, ratios are `baryons/(baryons + dark mat
 - **General Hernquist:** `{mass, scaleLength}`
 - **Cored:** `{mass, scaleLength, r1, rc[, rcut]}` - input mass is M200 of NFW profile | scaleLength is rs of the NFW profile | rcut is an optional cutoff radius; ignored if not set
 - **Single component King** `{mass, scaleLength, W0}` - scaleLength is the model's tidal radius (where density vanishes)
-- **Einasto:** `{mass, scaleLength, n},` - n is the Einasto index 
+- **Einasto:** `{mass, scaleLength, n},` - n is the Einasto index
 
 **The double component mixed dwarf code can be used as a single component dwarf generator.**
 To do this set the number of baryons equal to the total number of particles in your `.lua`, set the mass ratio to 1.0 in `run_nbody.sh`, set radius ratio to any number between but not including 0.0 and 1.0.
@@ -192,9 +192,13 @@ Unit Conversions:
 
 Tests
 ---
-  After building the client run
+  To build the tests after building the client run
   ```
   $ ./build_test_env
+  ```
+  Tests must be run from the `test_env` directory.
+  ```
+  $ cd test_env
   ```
   Tests can be run by running:
   ```
@@ -221,8 +225,6 @@ Tests
   $ ctest -R <Test_Name> -VV
   ```
   If only 21  tests are running instead of 53 tests, you are missing libraries (check Step 0 for compiling N-body)
-
-  **NOTE**: all `make` and `ctest` commands must be done under the `test_env` directory to work.
 
   Test results can be seen either in the terminal or under `test_env/Testing/Temporary/LastTest.log`. A consise list of failed test names can be seen under `test_env/Testing/Temporary/LastTestsFailed.log`.
 

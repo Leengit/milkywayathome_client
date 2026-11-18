@@ -2,10 +2,10 @@
 # PUT THIS SCRIPT OUTSIDE THE milkywayathome_client directory
 # After this, to run the whole testing suite, go to the newly created test_env folder and type 'make test' to run a specific test say 'ctest -R __test_name_here__' with the -VV option on if you want verbose output (otherwise you get no output)
 
-# Path to milkywayathome_client directory 
+# Path to milkywayathome_client directory
 cd "$(dirname "$0")"
 PathToMilkyWayAtHomeClientDirectory="$(pwd)"
-# Note, you need to specify if you plan to run the GPU testing suite. 'true' for true, 'false' for false 
+# Note, you need to specify if you plan to run the GPU testing suite. 'true' for true, 'false' for false
 includeGPUtesting=false
 
 # In that case, you would need to first run this with includeGPUtesting to false to test everything except the GPU
@@ -14,17 +14,17 @@ includeGPUtesting=false
 if $includeGPUtesting; then
   rm $PathToMilkyWayAtHomeClientDirectory/nbody/tests/CMakeLists.txt
   cp $PathToMilkyWayAtHomeClientDirectory/nbody/tests/GPUTesting/makeGPUfile.txt $PathToMilkyWayAtHomeClientDirectory/nbody/tests/CMakeLists.txt
-  
+
   cp $PathToMilkyWayAtHomeClientDirectory/nbody/tests/GPUTesting/gpu_test.c $PathToMilkyWayAtHomeClientDirectory/nbody/tests/gpu_test.c
   cp $PathToMilkyWayAtHomeClientDirectory/nbody/tests/GPUTesting/gpuTest.lua $PathToMilkyWayAtHomeClientDirectory/nbody/tests/gpuTest.lua
   cp $PathToMilkyWayAtHomeClientDirectory/nbody/tests/GPUTesting/gpu_test_basicmodels.c $PathToMilkyWayAtHomeClientDirectory/nbody/tests/gpu_test_basicmodels.c
   cp $PathToMilkyWayAtHomeClientDirectory/nbody/tests/GPUTesting/gpu_test_checkpoint.lua $PathToMilkyWayAtHomeClientDirectory/nbody/tests/gpu_test_checkpoint.lua
-  cp $PathToMilkyWayAtHomeClientDirectory/nbody/tests/GPUTesting/gpu_test_morebasicmodels.c $PathToMilkyWayAtHomeClientDirectory/nbody/tests/gpu_test_morebasicmodels.c 
+  cp $PathToMilkyWayAtHomeClientDirectory/nbody/tests/GPUTesting/gpu_test_morebasicmodels.c $PathToMilkyWayAtHomeClientDirectory/nbody/tests/gpu_test_morebasicmodels.c
   cp $PathToMilkyWayAtHomeClientDirectory/nbody/tests/GPUTesting/gpu_test_moremodels.c $PathToMilkyWayAtHomeClientDirectory/nbody/tests/gpu_test_moremodels.c
 else
   rm $PathToMilkyWayAtHomeClientDirectory/nbody/tests/CMakeLists.txt
   cp $PathToMilkyWayAtHomeClientDirectory/nbody/tests/GPUTesting/makeCPUfile.txt $PathToMilkyWayAtHomeClientDirectory/nbody/tests/CMakeLists.txt
-  
+
   rm $PathToMilkyWayAtHomeClientDirectory/nbody/tests/gpu_test.c
   rm $PathToMilkyWayAtHomeClientDirectory/nbody/tests/gpuTest.lua
   rm $PathToMilkyWayAtHomeClientDirectory/nbody/tests/gpu_test_basicmodels.c
@@ -38,10 +38,10 @@ fi
   mkdir test_env
   cd test_env
 
-if $includeGPUtesting; then 
+if $includeGPUtesting; then
   cmake -DNBODY_STATIC=OFF -DDOUBLEPREC=ON -DSEPARATION=OFF -DNBODY_GL=OFF -DBOINC_APPLICATION=OFF -DNBODY_OPENCL=ON $PathToMilkyWayAtHomeClientDirectory
 
-  make gpu_sanity 
+  make gpu_sanity
   make gpu_checkpoint
   make gpu_basicModelsPart1
   make gpu_basicModelsPart2
@@ -69,6 +69,6 @@ fi
   make softening_length_test
   make softening_length_multitype_test
   make mixeddwarf_test
-  
-  make all
+  make bfe_test
 
+  make all
